@@ -325,7 +325,7 @@ export default async function SubCategoryPostPage({
                   Home
                 </Link>
               </span>
-              <span className="text-gray-400">></span>
+              <span className="text-gray-400">{'>'}</span>
               <span>
                 <Link
                   href={`/${categorySlug}`}
@@ -334,7 +334,7 @@ export default async function SubCategoryPostPage({
                   {parentCategory.title}
                 </Link>
               </span>
-              <span className="text-gray-400">></span>
+              <span className="text-gray-400">{'>'}</span>
               <span>
                 <Link
                   href={`/${categorySlug}/${postSlug}`}

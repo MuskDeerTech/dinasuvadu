@@ -188,7 +188,7 @@ export default async function CategoryPage({
           >
             Home
           </Link>
-          <span className="text-gray-400">></span>
+          <span className="text-gray-400">{'>'}</span>
           <span className="text-gray-700">{categoryTitle}</span>
         </div>
       </nav>

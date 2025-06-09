@@ -332,14 +332,14 @@ export default async function PostOrSubCategoryPage({
             >
               Home
             </Link>
-            <span className="text-gray-400">></span>
+            <span className="text-gray-400">{'>'}</span>
             <Link
               href={`/${categorySlug}`}
               className="text-blue-600 hover:text-blue-800 transition-colors"
             >
               {topLevelCategoryTitle}
             </Link>
-            <span className="text-gray-400">></span>
+            <span className="text-gray-400">{'>'}</span>
             <span className="text-gray-700">{subCategoryTitle}</span>
           </div>
         </nav>
@@ -540,7 +540,7 @@ export default async function PostOrSubCategoryPage({
               >
                 Home
               </Link>
-              <span className="text-gray-400">></span>
+              <span className="text-gray-400">{'>'}</span>
               <Link
                 href={`/${categorySlug}`}
                 className="text-blue-600 hover:text-blue-800 transition-colors"
