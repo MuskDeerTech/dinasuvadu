@@ -889,7 +889,7 @@ export default async function PostOrSubCategoryPage({
             <section className="mb-12">
               <div className="prose prose-lg prose-blue max-w-none text-gray-800 leading-relaxed">
                 {postContent.split("\n").map((paragraph, index) => (
-                  <p key={index}>{paragraph}</p>
+                  <p className="post-desc" key={index}>{paragraph}</p>
                 ))}
               </div>
             </section>
