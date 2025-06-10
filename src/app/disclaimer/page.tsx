@@ -1,7 +1,7 @@
 export default function Archives() {
   return (
     <div className="site">
-      <div class="entry-content">
+      <div className="entry-content">
         <p>
           The information provided on this website is intended for general
           informational and educational purposes only. It is not intended to be

@@ -4,7 +4,7 @@ import "./globals.css";
 import 'antd/dist/reset.css'; // For Ant Design v5+
 import Header from "../components/Header";
 import axios from 'axios';
-import Footer from "@/components/Footer";
+import Footer from "../components/Footer";
 
 type Category = {
   id: string;
@@ -22,7 +22,14 @@ async function fetchCategories(): Promise<Category[]> {
     console.log('Fetched categories for layout:', categories);
     return categories;
   } catch (err) {
-    console.error('Error fetching categories for layout:', err.response?.data || err.message);
+    if (err && typeof err === 'object' && 'response' in err && err.response && typeof err.response === 'object' && 'data' in err.response) {
+      // @ts-ignore
+      console.error('Error fetching categories for layout:', err.response.data);
+    } else if (err instanceof Error) {
+      console.error('Error fetching categories for layout:', err.message);
+    } else {
+      console.error('Error fetching categories for layout:', err);
+    }
     return [];
   }
 }

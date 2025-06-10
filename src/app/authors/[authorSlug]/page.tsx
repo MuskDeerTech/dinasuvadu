@@ -4,7 +4,7 @@ import { Space } from "antd";
 import { ClockCircleOutlined } from "@ant-design/icons";
 import Text from "antd/es/typography/Text";
 import "antd/dist/reset.css"; // Import Ant Design CSS
-import ShareButton from "@/components/ShareButton";
+import ShareButton from "../../../components/ShareButton";
 
 type Author = {
   id: string;
@@ -53,6 +53,14 @@ type Post = {
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001";
 
+// Helper function to handle query parameters (string | string[] | undefined)
+const getPageNumber = (pageParam: string | string[] | undefined): number => {
+  if (Array.isArray(pageParam)) {
+    return parseInt(pageParam[0] || "1", 10); // Take the first value if it's an array
+  }
+  return parseInt(pageParam || "1", 10);
+};
+
 function getImageUrl(url: string | undefined): string {
   if (!url) return "/placeholder-image.jpg";
   return url.startsWith("http") ? url : `${apiUrl}${url}`;
@@ -60,12 +68,20 @@ function getImageUrl(url: string | undefined): string {
 
 async function fetchAuthors(): Promise<Author[]> {
   try {
-    const res = await axios.get(`${apiUrl}/api/users?depth=1`);
+    const res = await axios.get(`${apiUrl}/api/users?depth=1`, {
+      timeout: 10000, // 10 seconds timeout
+    });
     const authors = res.data.docs || [];
     console.log("Fetched authors:", JSON.stringify(authors, null, 2));
     return authors;
   } catch (err) {
-    console.error("Error fetching authors:", err.response?.data || err.message);
+    if (typeof err === "object" && err !== null && "response" in err && (err as any).response?.data) {
+      console.error("Error fetching authors:", (err as any).response.data);
+    } else if (typeof err === "object" && err !== null && "message" in err) {
+      console.error("Error fetching authors:", (err as any).message);
+    } else {
+      console.error("Error fetching authors:", String(err));
+    }
     return [];
   }
 }
@@ -74,19 +90,24 @@ async function fetchAuthorBySlug(slug: string): Promise<Author | null> {
   try {
     console.log(`Fetching author with slug: ${slug}`);
     const res = await axios.get(
-      `${apiUrl}/api/users?where[slug][equals]=${slug}&depth=1`
+      `${apiUrl}/api/users?where[slug][equals]=${slug}&depth=1`,
+      { timeout: 10000 }
     );
     const author = res.data.docs[0] || null;
     if (!author) {
       console.log(`No author found for slug: ${slug}`);
     } else {
-      console.log(`Fetched author with slug ${slug}:`, JSON.stringify(author, null, 2));
+      console.log(
+        `Fetched author with slug ${slug}:`,
+        JSON.stringify(author, null, 2)
+      );
     }
     return author;
   } catch (err) {
     console.error(
       `Error fetching author with slug ${slug}:`,
-      err.response?.data || err.message
+      (typeof err === "object" && err !== null && "response" in err && (err as any).response?.data) ||
+      (typeof err === "object" && err !== null && "message" in err ? (err as any).message : String(err))
     );
     return null;
   }
@@ -98,12 +119,18 @@ async function fetchPostsByAuthor(
   limit: number = 10
 ): Promise<{ posts: Post[]; total: number }> {
   try {
-    console.log(`Fetching posts for author ID: ${authorId}, page: ${page}, limit: ${limit}`);
+    console.log(
+      `Fetching posts for author ID: ${authorId}, page: ${page}, limit: ${limit}`
+    );
     const res = await axios.get(
-      `${apiUrl}/api/posts?limit=${limit}&page=${page}&depth=3&where[authors][contains]=${authorId}`
+      `${apiUrl}/api/posts?limit=${limit}&page=${page}&depth=3&where[authors][contains]=${authorId}`,
+      { timeout: 10000 }
     );
     const posts = res.data.docs || [];
-    console.log(`Fetched ${posts.length} posts for author ID ${authorId}:`, JSON.stringify(posts, null, 2));
+    console.log(
+      `Fetched ${posts.length} posts for author ID ${authorId}:`,
+      JSON.stringify(posts, null, 2)
+    );
     return {
       posts,
       total: res.data.totalDocs || 0,
@@ -111,7 +138,8 @@ async function fetchPostsByAuthor(
   } catch (err) {
     console.error(
       `Error fetching posts for author ID ${authorId}:`,
-      err.response?.data || err.message
+      (typeof err === "object" && err !== null && "response" in err && (err as any).response?.data) ||
+      (typeof err === "object" && err !== null && "message" in err ? (err as any).message : String(err))
     );
     return { posts: [], total: 0 };
   }
@@ -122,21 +150,38 @@ async function fetchParentCategory(
 ): Promise<{ slug: string; title: string } | null> {
   try {
     console.log(`Fetching parent category with ID: ${parentId}`);
-    const res = await axios.get(`${apiUrl}/api/categories/${parentId}?depth=1`);
+    const res = await axios.get(`${apiUrl}/api/categories/${parentId}?depth=1`, {
+      timeout: 10000,
+    });
     const parentCategory = res.data || null;
     if (!parentCategory) {
       console.log(`No parent category found for ID: ${parentId}`);
       return null;
     }
-    console.log(`Fetched parent category:`, JSON.stringify(parentCategory, null, 2));
+    console.log(
+      `Fetched parent category:`,
+      JSON.stringify(parentCategory, null, 2)
+    );
     return {
       slug: parentCategory.slug || "uncategorized",
       title: parentCategory.title || "Uncategorized",
     };
   } catch (err) {
+    let errorMessage = "";
+    if (typeof err === "object" && err !== null) {
+      if ("response" in err && (err as any).response?.data) {
+        errorMessage = (err as any).response.data;
+      } else if ("message" in err) {
+        errorMessage = (err as any).message;
+      } else {
+        errorMessage = JSON.stringify(err);
+      }
+    } else {
+      errorMessage = String(err);
+    }
     console.error(
       `Error fetching parent category with ID ${parentId}:`,
-      err.response?.data || err.message
+      errorMessage
     );
     return null;
   }
@@ -146,18 +191,21 @@ export default async function AuthorPage({
   params,
   searchParams,
 }: {
-  params: { authorSlug: string };
-  searchParams: { page?: string };
+  params: Promise<{ authorSlug: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const page = parseInt(searchParams.page || "1", 10);
+  const { authorSlug } = await params;
+  const query = await searchParams;
+  const page = getPageNumber(query.page);
   const limit = 10;
 
-  const author = await fetchAuthorBySlug(params.authorSlug);
+  const author = await fetchAuthorBySlug(authorSlug);
 
   if (!author) {
     return (
       <div className="site" style={{ minHeight: "100vh", padding: "20px" }}>
-        Author not found. Please check if the author exists or try a different slug.
+        Author not found. Please check if the author exists or try a different
+        slug.
       </div>
     );
   }
@@ -168,7 +216,10 @@ export default async function AuthorPage({
   return (
     <div className="site" style={{ minHeight: "100vh", padding: "20px" }}>
       <div className="site-main" style={{ marginBottom: "20px" }}>
-        <h1 className="category-title text-3xl font-bold mb-6" style={{ color: "black" }}>
+        <h1
+          className="category-title text-3xl font-bold mb-6"
+          style={{ color: "black" }}
+        >
           Author: {author.name}
         </h1>
       </div>
@@ -179,18 +230,18 @@ export default async function AuthorPage({
         </p>
       ) : (
         <>
-          <div className="category-grid space-y-6" >
+          <div className="category-grid space-y-6">
             {await Promise.all(
               posts.map(async (post) => {
-                const mediaBlock = post.layout?.find(
-                  (block) => block.blockType === "mediaBlock"
-                );
+                // const mediaBlock = post.layout?.find(
+                //   (block) => block.blockType === "mediaBlock"
+                // );
                 const imageUrl = getImageUrl(post.heroImage?.url);
                 const imageAlt = post.heroImage?.alt || post.title;
 
                 const category = post.categories?.[0];
                 const categorySlug = category?.slug || "uncategorized";
-                const categoryTitle = category?.title || "Uncategorized";
+                // const categoryTitle = category?.title || "Uncategorized";
 
                 let postUrl = `/${categorySlug}/${post.slug}`;
                 if (category?.parent) {
@@ -201,7 +252,9 @@ export default async function AuthorPage({
                   if (parent) {
                     postUrl = `/${parent.slug}/${categorySlug}/${post.slug}`;
                   } else {
-                    console.warn(`Parent category fetch failed for post ${post.id}, using fallback URL: ${postUrl}`);
+                    console.warn(
+                      `Parent category fetch failed for post ${post.id}, using fallback URL: ${postUrl}`
+                    );
                   }
                 }
 
@@ -214,15 +267,16 @@ export default async function AuthorPage({
                     <article className="flex flex-col h-full">
                       <div className="post-item-category api-title flex flex-col md:flex-row gap-4">
                         <div className="flex-1 site-main">
-                          <h3 className="post-title-1 text-xl font-semibold mb-2">{post.title}</h3>
+                          <h3 className="post-title-1 text-xl font-semibold mb-2">
+                            {post.title}
+                          </h3>
                           {post.meta?.description && (
                             <p className="post-description text-gray-600 mb-3">
                               {post.meta.description}
                             </p>
                           )}
                           <div className="post-first-tag flex items-center gap-3">
-                          
-                            {post.tags?.length > 0 && (
+                            {Array.isArray(post.tags) && post.tags.length > 0 && (
                               <Link href={`/tags/${post.tags[0].slug}`}>
                                 <span className="text-blue-600 hover:underline text-sm">
                                   {post.tags[0].name}
@@ -255,7 +309,6 @@ export default async function AuthorPage({
                               src={imageUrl}
                               alt={imageAlt}
                               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                             
                             />
                           </div>
                         ) : (
@@ -277,24 +330,28 @@ export default async function AuthorPage({
             <div className="flex justify-center space-x-2 web-stories-pagination mt-8">
               {page > 1 && (
                 <Link
-                  href={`/authors/${params.authorSlug}?page=${page - 1}`}
+                  href={`/authors/${authorSlug}?page=${page - 1}`}
                   className="pagination-link px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition"
                 >
                   Prev
                 </Link>
               )}
               <Link
-                href={`/authors/${params.authorSlug}?page=1`}
+                href={`/authors/${authorSlug}?page=1`}
                 className={`pagination-link px-4 py-2 rounded ${
-                  page === 1 ? "bg-indigo-600 text-white" : "bg-gray-200 hover:bg-gray-300"
+                  page === 1
+                    ? "bg-indigo-600 text-white"
+                    : "bg-gray-200 hover:bg-gray-300"
                 } transition`}
               >
                 1
               </Link>
-              {page > 2 && <span className="pagination-ellipsis px-2 py-2">…</span>}
+              {page > 2 && (
+                <span className="pagination-ellipsis px-2 py-2">…</span>
+              )}
               {page !== 1 && page !== totalPages && (
                 <Link
-                  href={`/authors/${params.authorSlug}?page=${page}`}
+                  href={`/authors/${authorSlug}?page=${page}`}
                   className="pagination-link px-4 py-2 bg-indigo-600 text-white rounded"
                 >
                   {page}
@@ -305,9 +362,11 @@ export default async function AuthorPage({
               )}
               {totalPages > 1 && (
                 <Link
-                  href={`/authors/${params.authorSlug}?page=${totalPages}`}
+                  href={`/authors/${authorSlug}?page=${totalPages}`}
                   className={`pagination-link px-4 py-2 rounded ${
-                    page === totalPages ? "bg-indigo-600 text-white" : "bg-gray-200 hover:bg-gray-300"
+                    page === totalPages
+                      ? "bg-indigo-600 text-white"
+                      : "bg-gray-200 hover:bg-gray-300"
                   } transition`}
                 >
                   {totalPages}
@@ -315,7 +374,7 @@ export default async function AuthorPage({
               )}
               {page < totalPages && (
                 <Link
-                  href={`/authors/${params.authorSlug}?page=${page + 1}`}
+                  href={`/authors/${authorSlug}?page=${page + 1}`}
                   className="pagination-link px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition"
                 >
                   Next
@@ -344,6 +403,9 @@ export async function generateStaticParams() {
   const params = validAuthors.map((author: Author) => ({
     authorSlug: author.slug,
   }));
-  console.log(`Generated static params for ${params.length} authors:`, JSON.stringify(params, null, 2));
+  console.log(
+    `Generated static params for ${params.length} authors:`,
+    JSON.stringify(params, null, 2)
+  );
   return params;
 }

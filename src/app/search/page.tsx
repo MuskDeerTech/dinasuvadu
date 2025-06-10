@@ -4,8 +4,7 @@ import { Space } from "antd";
 import { ClockCircleOutlined } from "@ant-design/icons";
 import Text from "antd/es/typography/Text";
 import "antd/dist/reset.css";
-import ShareButton from "@/components/ShareButton";
-import { notFound } from "next/navigation";
+import ShareButton from "../../components/ShareButton";
 
 type Tag = {
   id: string;
@@ -44,11 +43,28 @@ type Post = {
 };
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001";
+
+// Helper function to handle query parameters (string | string[] | undefined)
+const getPageNumber = (pageParam: string | string[] | undefined): number => {
+  if (Array.isArray(pageParam)) {
+    return parseInt(pageParam[0] || "1", 10); // Take the first value if it's an array
+  }
+  return parseInt(pageParam || "1", 10);
+};
+
+// Helper function to get the search query (string | string[] | undefined)
+const getSearchQuery = (queryParam: string | string[] | undefined): string => {
+  if (Array.isArray(queryParam)) {
+    return queryParam[0] || ""; // Take the first value if it's an array
+  }
+  return queryParam || "";
+};
 
 // Helper function to get the image URL with proper base URL
 function getImageUrl(url: string | undefined): string | null {
   if (!url) return null;
-  return url.startsWith('http') ? url : `${apiUrl}${url}`;
+  return url.startsWith("http") ? url : `${apiUrl}${url}`;
 }
 
 // Helper function to calculate read time
@@ -66,9 +82,12 @@ async function fetchPostsBySearch(
   limit: number = 10
 ): Promise<{ posts: Post[]; total: number }> {
   try {
-    console.log(`Fetching posts for search query: ${query}, page: ${page}, limit: ${limit}`);
+    console.log(
+      `Fetching posts for search query: ${query}, page: ${page}, limit: ${limit}`
+    );
     const res = await axios.get(
-      `${apiUrl}/api/posts?limit=${limit}&page=${page}&depth=5`
+      `${apiUrl}/api/posts?limit=${limit}&page=${page}&depth=5`,
+      { timeout: 10000 } // 10 seconds timeout
     );
     const allPosts: Post[] = res.data.docs || [];
     const total = res.data.totalDocs || 0;
@@ -82,40 +101,62 @@ async function fetchPostsBySearch(
       if (post.title?.toLowerCase().includes(normalizedQuery)) return true;
 
       // Check meta.description
-      if (post.meta?.description?.toLowerCase().includes(normalizedQuery)) return true;
+      if (post.meta?.description?.toLowerCase().includes(normalizedQuery))
+        return true;
 
       // Check slug
       if (post.slug?.toLowerCase().includes(normalizedQuery)) return true;
 
       // Check tags.name
-      if (post.tags?.some((tag) => tag.name?.toLowerCase().includes(normalizedQuery))) return true;
+      if (
+        post.tags?.some((tag) =>
+          tag.name?.toLowerCase().includes(normalizedQuery)
+        )
+      )
+        return true;
 
       // Check layout.media.alt
       if (
         post.layout?.some((block) =>
           block.media?.alt?.toLowerCase().includes(normalizedQuery)
         )
-      ) return true;
+      )
+        return true;
 
       // Check categories.title
       if (
         post.categories?.some((category) =>
           category.title?.toLowerCase().includes(normalizedQuery)
         )
-      ) return true;
+      )
+        return true;
 
       return false;
     });
 
-    console.log(`Filtered ${filteredPosts.length} posts for search query: ${query}`);
+    console.log(
+      `Filtered ${filteredPosts.length} posts for search query: ${query}`
+    );
     return {
       posts: filteredPosts,
       total: filteredPosts.length,
     };
   } catch (err) {
+    let errorMessage = "";
+    if (typeof err === "object" && err !== null) {
+      if ("response" in err && typeof (err as any).response?.data !== "undefined") {
+        errorMessage = (err as any).response.data;
+      } else if ("message" in err && typeof (err as any).message === "string") {
+        errorMessage = (err as any).message;
+      } else {
+        errorMessage = JSON.stringify(err);
+      }
+    } else {
+      errorMessage = String(err);
+    }
     console.error(
       `Error fetching posts for search query ${query}:`,
-      err.response?.data || err.message
+      errorMessage
     );
     return { posts: [], total: 0 };
   }
@@ -126,7 +167,9 @@ async function fetchParentCategory(
   parentId: string
 ): Promise<{ slug: string; title: string } | null> {
   try {
-    const res = await axios.get(`${apiUrl}/api/categories/${parentId}?depth=1`);
+    const res = await axios.get(`${apiUrl}/api/categories/${parentId}?depth=1`, {
+      timeout: 10000,
+    });
     const parentCategory = res.data || null;
     if (!parentCategory) {
       console.log(`No parent category found for ID: ${parentId}`);
@@ -137,9 +180,21 @@ async function fetchParentCategory(
       title: parentCategory.title || "Uncategorized",
     };
   } catch (err) {
+    let errorMessage = "";
+    if (typeof err === "object" && err !== null) {
+      if ("response" in err && typeof (err as any).response?.data !== "undefined") {
+        errorMessage = (err as any).response.data;
+      } else if ("message" in err && typeof (err as any).message === "string") {
+        errorMessage = (err as any).message;
+      } else {
+        errorMessage = JSON.stringify(err);
+      }
+    } else {
+      errorMessage = String(err);
+    }
     console.error(
       `Error fetching parent category with ID ${parentId}:`,
-      err.response?.data || err.message
+      errorMessage
     );
     return null;
   }
@@ -148,10 +203,11 @@ async function fetchParentCategory(
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: { s?: string; page?: string };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const query = searchParams.s || "";
-  const page = parseInt(searchParams.page || "1", 10);
+  const queryParams = await searchParams;
+  const query = getSearchQuery(queryParams.s);
+  const page = getPageNumber(queryParams.page);
   const limit = 10;
 
   if (!query) {
@@ -165,7 +221,6 @@ export default async function SearchPage({
     <div className="site">
       <div className="site-main">
         <h1 className="category-title">Search Results for: {query}</h1>
-  
       </div>
 
       {posts.length === 0 ? (
@@ -205,10 +260,12 @@ export default async function SearchPage({
                         <div className="flex-1 site-main">
                           <h3 className="post-title-1">{post.title}</h3>
                           {post.meta?.description && (
-                            <p className="post-description">{post.meta.description}</p>
+                            <p className="post-description">
+                              {post.meta.description}
+                            </p>
                           )}
                           <div className="post-first-tag">
-                            {post.tags?.length > 0 && (
+                            {post.tags && post.tags.length > 0 && (
                               <Link href={`/tags/${post.tags[0].slug}`}>
                                 <span className="text-blue-600 hover:underline">
                                   {post.tags[0].name}
@@ -229,7 +286,7 @@ export default async function SearchPage({
                               </Space>
                             </span>
                             <ShareButton
-                              url={`http://localhost:3001${postUrl}`}
+                              url={`${baseUrl}${postUrl}`} // Updated to use dynamic baseUrl
                               title={post.title}
                               description={post.meta?.description}
                             />
@@ -264,7 +321,9 @@ export default async function SearchPage({
             <div className="flex justify-center space-x-2 mt-8 web-stories-pagination">
               {page > 1 && (
                 <Link
-                  href={`/search?s=${encodeURIComponent(query)}&page=${page - 1}`}
+                  href={`/search?s=${encodeURIComponent(
+                    query
+                  )}&page=${page - 1}`}
                   className="pagination-link"
                 >
                   Prev
@@ -295,8 +354,12 @@ export default async function SearchPage({
 
               {totalPages > 1 && (
                 <Link
-                  href={`/search?s=${encodeURIComponent(query)}&page=${totalPages}`}
-                  className={`pagination-link ${page === totalPages ? "active" : ""}`}
+                  href={`/search?s=${encodeURIComponent(
+                    query
+                  )}&page=${totalPages}`}
+                  className={`pagination-link ${
+                    page === totalPages ? "active" : ""
+                  }`}
                 >
                   {totalPages}
                 </Link>
@@ -304,7 +367,9 @@ export default async function SearchPage({
 
               {page < totalPages && (
                 <Link
-                  href={`/search?s=${encodeURIComponent(query)}&page=${page + 1}`}
+                  href={`/search?s=${encodeURIComponent(
+                    query
+                  )}&page=${page + 1}`}
                   className="pagination-link"
                 >
                   Next

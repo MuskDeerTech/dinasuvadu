@@ -1,11 +1,11 @@
 import axios from "axios";
 import Link from "next/link";
-import { Card, Space } from "antd";
+import { Space } from "antd";
 import { ClockCircleOutlined } from "@ant-design/icons";
 import Text from "antd/es/typography/Text";
 import 'antd/dist/reset.css'; // Import Ant Design CSS
 import { notFound } from "next/navigation";
-import ShareButton from "@/components/ShareButton"; // Import ShareButton
+import ShareButton from "../../../components/ShareButton";
 
 // Type definitions
 type RichTextChild = {
@@ -126,7 +126,7 @@ async function fetchCategoryBySlug(slug: string): Promise<Category | null> {
   } catch (error) {
     console.error(
       `Error fetching category with slug ${slug}:`,
-      error.response?.data || error.message
+      (error as any).response?.data || (error as any).message
     );
     return null;
   }
@@ -152,7 +152,7 @@ async function fetchParentCategory(
   } catch (err) {
     console.error(
       `Error fetching parent category with ID ${parentId}:`,
-      err.response?.data || err.message
+      (err as any).response?.data || (err as any).message
     );
     return null;
   }
@@ -176,7 +176,7 @@ async function fetchPost(slug: string): Promise<Post | null> {
   } catch (error) {
     console.error(
       "Error fetching post with slug " + slug + ":",
-      error.response?.data || error.message
+      (error as any).response?.data || (error as any).message
     );
     return null;
   }
@@ -208,7 +208,7 @@ async function fetchPostsByCategory(categorySlug: string, page: number = 1, limi
   } catch (error) {
     console.error(
       "Error fetching posts for category " + categorySlug + ":",
-      error.response?.data || error.message
+      (error as any).response?.data || (error as any).message
     );
     return { posts: [], total: 0 };
   }
@@ -227,7 +227,7 @@ async function fetchLatestPosts(currentPostSlug: string): Promise<Post[]> {
   } catch (error) {
     console.error(
       "Error fetching latest posts:",
-      error.response?.data || error.message
+      (error as any).response?.data || (error as any).message
     );
     return [];
   }
@@ -254,7 +254,7 @@ async function fetchCategoryById(
   } catch (err) {
     console.error(
       `Error fetching category with ID ${categoryId}:`,
-      err.response?.data || err.message
+      (err as any)?.response?.data || (err as any)?.message
     );
     return null;
   }
@@ -265,15 +265,17 @@ export default async function PostOrSubCategoryPage({
   searchParams,
 }: {
   params: Promise<{ categorySlug: string; postSlug: string }>;
-  searchParams: { page?: string };
+  searchParams: Promise<{ page?: string }>; // Updated type to Promise
 }) {
   console.log("Entering PostOrSubCategoryPage component for [categorySlug]/[postSlug]");
 
   const { categorySlug, postSlug } = await params;
-  const page = parseInt(searchParams.page || '1', 10);
+  const query = await searchParams; // Await the Promise to get the resolved value
+  const page = parseInt(query.page || "1", 10); // Access the resolved value
   const limit = 10;
   console.log(`Handling route: /${categorySlug}/${postSlug}?page=${page}`);
 
+  // Rest of your component code remains unchanged
   const topLevelCategory = await fetchCategoryBySlug(categorySlug);
   if (!topLevelCategory) {
     console.log(`Top-level category ${categorySlug} not found`);
@@ -286,6 +288,8 @@ export default async function PostOrSubCategoryPage({
     );
     notFound();
   }
+
+ 
 
   let topLevelCategoryTitle = topLevelCategory.title || "Uncategorized";
   if (!topLevelCategory.title) {
@@ -377,10 +381,10 @@ export default async function PostOrSubCategoryPage({
                             </p>
                           )}
                           <div className="post-first-tag">
-                            {post.tags?.length > 0 && (
-                              <Link href={`/tags/${post.tags[0].slug}`}>
+                            {(post.tags ?? []).length > 0 && (
+                              <Link href={`/tags/${(post.tags ?? [])[0].slug}`}>
                                 <span className="text-blue-600 hover:underline">
-                                  {post.tags[0].name}
+                                  {(post.tags ?? [])[0].name}
                                 </span>
                               </Link>
                             )}
@@ -568,7 +572,7 @@ export default async function PostOrSubCategoryPage({
               className="flex flex-wrap items-center text-sm text-gray-600 mb-8 gap-2"
               style={{ marginBottom: "10px" }}
             >
-              {post.populatedAuthors?.length > 0 && (
+              {post.populatedAuthors && post.populatedAuthors.length > 0 && (
                 <>
                   <span>By </span>
                   {post.populatedAuthors.map((author, i) => (
@@ -579,12 +583,12 @@ export default async function PostOrSubCategoryPage({
                       >
                         {author.name}
                       </Link>
-                      {i < post.populatedAuthors.length - 1 && ", "}
+                      {post.populatedAuthors && i < post.populatedAuthors.length - 1 && ", "}
                     </span>
                   ))}
                 </>
               )}
-              {post.populatedAuthors?.length > 0 && post.publishedAt && (
+              {post.populatedAuthors && post.populatedAuthors.length > 0 && post.publishedAt && (
                 <span
                   className="text-gray-400 mx-2"
                   style={{ marginLeft: "5px" }}
@@ -621,11 +625,11 @@ export default async function PostOrSubCategoryPage({
           id="Layer_1"
           viewBox="0 0 308 308"
         >
-          <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+          <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
           <g
             id="SVGRepo_tracerCarrier"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           ></g>
           <g id="SVGRepo_iconCarrier">
             <g id="XMLID_468_">
@@ -670,7 +674,7 @@ export default async function PostOrSubCategoryPage({
     >
       <span>
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <g clip-path="url(#clip0_4587_21)">
+          <g clipPath="url(#clip0_4587_21)">
             <path
               d="M15.58 15.3333L9.71667 6.78534L9.72667 6.79334L15.0133 0.666672H13.2467L8.94 5.65334L5.52 0.666672H0.88667L6.36067 8.64734L6.36 8.64667L0.58667 15.3333H2.35334L7.14134 9.78534L10.9467 15.3333H15.58ZM4.82 2.00001L13.0467 14H11.6467L3.41334 2.00001H4.82Z"
               fill="black"
@@ -818,13 +822,13 @@ export default async function PostOrSubCategoryPage({
               <div className="relative rounded-lg overflow-hidden shadow-lg">
                 {post.layout?.[0]?.blockType === "mediaBlock" && post.layout[0].media ? (
                   <img
-                    src={getImageUrl(post.layout[0].media.url)} // Applied getImageUrl
+                    src={getImageUrl(post.layout[0].media.url) || undefined} // Applied getImageUrl
                     alt={post.layout[0].media.alt || "Hero Image"}
                     className="w-full h-80 object-cover"
                   />
                 ) : (
                   <img
-                    src={getImageUrl(post.heroImage?.url)}
+                    src={getImageUrl(post.heroImage?.url) || undefined}
                     alt={post.heroImage?.alt || "Hero Image"}
                     className="w-full h-80 object-cover"
                   />
@@ -839,9 +843,9 @@ export default async function PostOrSubCategoryPage({
           ) : null}
 
           {/* Hero Rich Text */}
-          {post.hero?.richText?.length > 0 && (
+          {Array.isArray(post.hero?.richText) && post.hero.richText.length > 0 && (
             <section className="prose prose-lg prose-blue max-w-none mb-12 text-gray-800">
-              {post.hero.richText.map((block, index) => (
+              {post.hero!.richText!.map((block, index) => (
                 <p key={index} className="leading-relaxed">
                   {block.children.map((child, i) => (
                     <span
@@ -859,13 +863,13 @@ export default async function PostOrSubCategoryPage({
           )}
 
           {/* Post Content */}
-          {post.layout?.slice(1).length > 0 ? (
+          {post.layout && post.layout.slice(1).length > 0 ? (
             post.layout.slice(1).map((block, index) => (
               <section key={index} className="mb-12">
                 {block.blockType === "mediaBlock" && block.media && (
                   <figure className="my-8">
                     <img
-                      src={getImageUrl(block.media.url)} // Applied getImageUrl
+                      src={getImageUrl(block.media.url) || undefined} // Applied getImageUrl
                       alt={block.media.alt || "Media"}
                       className="w-full max-w-2xl mx-auto h-auto object-cover rounded-md shadow-md"
                     />
@@ -912,11 +916,11 @@ export default async function PostOrSubCategoryPage({
                   id="Layer_1"
                   viewBox="0 0 308 308"
                 >
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
                   <g
                     id="SVGRepo_tracerCarrier"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   ></g>
                   <g id="SVGRepo_iconCarrier">
                     {" "}
@@ -942,7 +946,7 @@ export default async function PostOrSubCategoryPage({
                 aria-label="Menu"
               >
                 <svg width="20" height="18" viewBox="0 0 20 18" fill="none">
-                  <g clip-path="url(#clip0_4590_27)">
+                  <g clipPath="url(#clip0_4590_27)">
                     <path
                       d="M4.16626 1.62102V12.0369C4.16626 12.5175 4.54126 12.9083 5.00251 12.9083H14.9975C15.4588 12.9083 15.8338 12.5175 15.8338 12.0369V1.62102C15.8338 1.14035 15.4588 0.749557 14.9975 0.749557H5.00251C4.54126 0.749557 4.16626 1.14035 4.16626 1.62102Z"
                       fill="url(#paint0_linear_4590_27)"
@@ -990,32 +994,32 @@ export default async function PostOrSubCategoryPage({
                       fill="url(#paint3_linear_4590_27)"
                     ></path>
                     <path
-                      fill-rule="evenodd"
-                      clip-rule="evenodd"
+                      fillRule="evenodd"
+                      clipRule="evenodd"
                       d="M10.4163 9.43464V8.13158H14.5846C14.8133 8.13158 15 8.3261 15 8.56448V9.00173C15 9.24012 14.8133 9.43464 14.5846 9.43464H10.4163Z"
                       fill="white"
                     ></path>
                     <path
-                      fill-rule="evenodd"
-                      clip-rule="evenodd"
+                      fillRule="evenodd"
+                      clipRule="evenodd"
                       d="M10.4158 11.6048V10.3018H15.4174C15.6462 10.3018 15.8329 10.4963 15.8329 10.7347V11.1719C15.8329 11.4103 15.6462 11.6048 15.4174 11.6048H10.4158Z"
                       fill="white"
                     ></path>
                     <path
-                      fill-rule="evenodd"
-                      clip-rule="evenodd"
+                      fillRule="evenodd"
+                      clipRule="evenodd"
                       d="M10.4163 13.7759V12.4728H14.5846C14.8133 12.4728 15 12.6673 15 12.9057V13.343C15 13.5813 14.8133 13.7759 14.5846 13.7759H10.4163Z"
                       fill="white"
                     ></path>
                     <path
-                      fill-rule="evenodd"
-                      clip-rule="evenodd"
+                      fillRule="evenodd"
+                      clipRule="evenodd"
                       d="M4.16418 10.9535C4.16418 9.39426 5.37793 8.12897 6.8746 8.12897C7.62252 8.12897 8.30085 8.44551 8.79127 8.95744L7.90752 9.8784C7.64293 9.60268 7.27752 9.4316 6.8746 9.4316C6.06835 9.4316 5.41418 10.1142 5.41418 10.9535C5.41418 11.7937 6.06877 12.4754 6.8746 12.4754C7.68002 12.4754 8.33502 11.7933 8.33502 10.9535C8.33502 10.8801 8.3296 10.8076 8.32002 10.7364H9.57668C9.5821 10.808 9.58502 10.8806 9.58502 10.9535C9.58502 12.5132 8.37043 13.778 6.8746 13.778C5.37793 13.7785 4.16418 12.5132 4.16418 10.9535Z"
                       fill="white"
                     ></path>
                     <path
-                      fill-rule="evenodd"
-                      clip-rule="evenodd"
+                      fillRule="evenodd"
+                      clipRule="evenodd"
                       d="M7.08252 10.7373V11.6061H8.33294L8.7496 11.1706L8.33294 10.7368L7.08252 10.7373Z"
                       fill="white"
                     ></path>
@@ -1029,8 +1033,8 @@ export default async function PostOrSubCategoryPage({
                       y2="5.98031"
                       gradientUnits="userSpaceOnUse"
                     >
-                      <stop stop-color="#33C481"></stop>
-                      <stop offset="1" stop-color="#21A366"></stop>
+                      <stop stopColor="#33C481"></stop>
+                      <stop offset="1" stopColor="#21A366"></stop>
                     </linearGradient>
                     <linearGradient
                       id="paint1_linear_4590_27"
@@ -1040,8 +1044,8 @@ export default async function PostOrSubCategoryPage({
                       y2="12.1127"
                       gradientUnits="userSpaceOnUse"
                     >
-                      <stop stop-color="#F44F5B"></stop>
-                      <stop offset="1" stop-color="#E5202E"></stop>
+                      <stop stopColor="#F44F5B"></stop>
+                      <stop offset="1" stopColor="#E5202E"></stop>
                     </linearGradient>
                     <linearGradient
                       id="paint2_linear_4590_27"
@@ -1051,8 +1055,8 @@ export default async function PostOrSubCategoryPage({
                       y2="9.39139"
                       gradientUnits="userSpaceOnUse"
                     >
-                      <stop stop-color="#FFE074"></stop>
-                      <stop offset="1" stop-color="#F8CF40"></stop>
+                      <stop stopColor="#FFE074"></stop>
+                      <stop offset="1" stopColor="#F8CF40"></stop>
                     </linearGradient>
                     <linearGradient
                       id="paint3_linear_4590_27"
@@ -1062,8 +1066,8 @@ export default async function PostOrSubCategoryPage({
                       y2="15.311"
                       gradientUnits="userSpaceOnUse"
                     >
-                      <stop stop-color="#55ADFD"></stop>
-                      <stop offset="1" stop-color="#438FFD"></stop>
+                      <stop stopColor="#55ADFD"></stop>
+                      <stop offset="1" stopColor="#438FFD"></stop>
                     </linearGradient>
                     <clipPath id="clip0_4590_27">
                       <rect width="20" height="18" fill="white"></rect>
@@ -1080,7 +1084,7 @@ export default async function PostOrSubCategoryPage({
                 aria-label="Menu"
               >
                 <svg width="15" height="11" viewBox="0 0 15 11" fill="none">
-                  <g clip-path="url(#clip0_4590_43)">
+                  <g clipPath="url(#clip0_4590_43)">
                     <path
                       d="M14.3 9.00625C14.1583 9.75 13.5562 10.3167 12.8125 10.4229C11.6437 10.6 9.69579 10.8125 7.49996 10.8125C5.33954 10.8125 3.39163 10.6 2.18746 10.4229C1.44371 10.3167 0.841626 9.75 0.699959 9.00625C0.558293 8.19167 0.416626 6.9875 0.416626 5.5C0.416626 4.0125 0.558293 2.80833 0.699959 1.99375C0.841626 1.25 1.44371 0.683333 2.18746 0.577083C3.35621 0.4 5.30413 0.1875 7.49996 0.1875C9.69579 0.1875 11.6083 0.4 12.8125 0.577083C13.5562 0.683333 14.1583 1.25 14.3 1.99375C14.4416 2.80833 14.6187 4.0125 14.6187 5.5C14.5833 6.9875 14.4416 8.19167 14.3 9.00625Z"
                       fill="#FF3D00"
@@ -1133,7 +1137,7 @@ export default async function PostOrSubCategoryPage({
                   role="img"
                 >
                   <title>X (formerly Twitter)</title>
-                  <g clip-path="url(#clip0_4587_21)">
+                  <g clipPath="url(#clip0_4587_21)">
                     <path
                       d="M15.58 15.3333L9.71667 6.78534L9.72667 6.79334L15.0133 0.666672H13.2467L8.94 5.65334L5.52 0.666672H0.88667L6.36067 8.64734L6.36 8.64667L0.58667 15.3333H2.35334L7.14134 9.78534L10.9467 15.3333H15.58ZM4.82 2.00001L13.0467 14H11.6467L3.41334 2.00001H4.82Z"
                       fill="black"
@@ -1161,7 +1165,7 @@ export default async function PostOrSubCategoryPage({
                   role="img"
                 >
                   <title>Instagram</title>
-                  <g clip-path="url(#clip0_4587_17)">
+                  <g clipPath="url(#clip0_4587_17)">
                     <path
                       d="M11 0H5C3.67392 0 2.40215 0.526784 1.46447 1.46447C0.526784 2.40215 0 3.67392 0 5L0 11C0 12.3261 0.526784 13.5979 1.46447 14.5355C2.40215 15.4732 3.67392 16 5 16H11C12.3261 16 13.5979 15.4732 14.5355 14.5355C15.4732 13.5979 16 12.3261 16 11V5C16 3.67392 15.4732 2.40215 14.5355 1.46447C13.5979 0.526784 12.3261 0 11 0ZM14.5 11C14.5 12.93 12.93 14.5 11 14.5H5C3.07 14.5 1.5 12.93 1.5 11V5C1.5 3.07 3.07 1.5 5 1.5H11C12.93 1.5 14.5 3.07 14.5 5V11Z"
                       fill="url(#paint0_linear_4587_17)"
@@ -1224,10 +1228,10 @@ export default async function PostOrSubCategoryPage({
 
 
           {/* Tags */}
-          {post.tags?.length > 0 && (
+           {(post.tags ?? []).length > 0 && (
             <div className="post-tags mt-8">
               <div className="tags flex flex-wrap gap-2">
-                {post.tags.map((tag) => (
+                 {(post.tags ?? []).map((tag) => (
                   <Link key={tag.id} href={`/tags/${tag.slug}`}>
                     <span className="inline-block bg-blue-100 text-blue-800 rounded-full px-4 py-1.5 text-sm font-medium hover:bg-blue-200 transition-colors">
                       {tag.name}
@@ -1298,6 +1302,7 @@ export default async function PostOrSubCategoryPage({
                               ...clampStyle,
                               fontSize: "13px",
                               fontWeight: "500",
+                              WebkitBoxOrient: "vertical" as const,
                             }}
                           >
                             {latestPost.title}
@@ -1391,7 +1396,7 @@ export async function generateStaticParams() {
     console.log(`Total static params generated: ${params.length}`);
     return params;
   } catch (error) {
-    console.error("Error generating static params:", error.response?.data || error.message);
+    console.error("Error generating static params:", (error as any).response?.data || (error as any).message);
     return [];
   }
 }

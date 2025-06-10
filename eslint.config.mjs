@@ -11,6 +11,12 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  {
+    files: ["**/*.{js,jsx,ts,tsx}"], // Explicitly specify file extensions to lint
+    rules: {
+      // Add custom rules if needed
+    },
+  },
 ];
 
 export default eslintConfig;

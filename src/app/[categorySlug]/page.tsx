@@ -5,7 +5,7 @@ import { ClockCircleOutlined } from "@ant-design/icons";
 import Text from "antd/es/typography/Text";
 import 'antd/dist/reset.css';
 import { notFound } from "next/navigation";
-import ShareButton from "@/components/ShareButton";
+import ShareButton from "../../components/ShareButton";
 
 // Type definitions
 type Category = {
@@ -63,9 +63,21 @@ async function fetchCategoryBySlug(slug: string): Promise<Category | null> {
     console.log(`Fetched category ${slug}:`, JSON.stringify(category, null, 2));
     return category;
   } catch (error) {
+    let errorMessage = '';
+    if (typeof error === 'object' && error !== null) {
+      if ('response' in error && typeof (error as any).response?.data !== 'undefined') {
+        errorMessage = (error as any).response.data;
+      } else if ('message' in error && typeof (error as any).message === 'string') {
+        errorMessage = (error as any).message;
+      } else {
+        errorMessage = JSON.stringify(error);
+      }
+    } else {
+      errorMessage = String(error);
+    }
     console.error(
       `Error fetching category with slug ${slug}:`,
-      error.response?.data || error.message
+      errorMessage
     );
     return null;
   }
@@ -95,9 +107,21 @@ async function fetchPostsByCategory(categorySlug: string, page: number = 1, limi
     console.log(`Fetched ${posts.length} posts for category ${categorySlug} (ID: ${categoryId}), total: ${total}`);
     return { posts, total };
   } catch (error) {
+    let errorMessage = '';
+    if (typeof error === 'object' && error !== null) {
+      if ('response' in error && typeof (error as any).response?.data !== 'undefined') {
+        errorMessage = (error as any).response.data;
+      } else if ('message' in error && typeof (error as any).message === 'string') {
+        errorMessage = (error as any).message;
+      } else {
+        errorMessage = JSON.stringify(error);
+      }
+    } else {
+      errorMessage = String(error);
+    }
     console.error(
       "Error fetching posts for category " + categorySlug + ":",
-      error.response?.data || error.message
+      errorMessage
     );
     return { posts: [], total: 0 };
   }
@@ -122,9 +146,21 @@ async function fetchCategoryById(
       title: category.title || "Uncategorized",
     };
   } catch (err) {
+    let errorMessage = '';
+    if (typeof err === 'object' && err !== null) {
+      if ('response' in err && typeof (err as any).response?.data !== 'undefined') {
+        errorMessage = (err as any).response.data;
+      } else if ('message' in err && typeof (err as any).message === 'string') {
+        errorMessage = (err as any).message;
+      } else {
+        errorMessage = JSON.stringify(err);
+      }
+    } else {
+      errorMessage = String(err);
+    }
     console.error(
       `Error fetching category with ID ${categoryId}:`,
-      err.response?.data || err.message
+      errorMessage
     );
     return null;
   }
@@ -141,12 +177,13 @@ export default async function CategoryPage({
   searchParams,
 }: {
   params: Promise<{ categorySlug: string }>;
-  searchParams: { page?: string };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>; // Updated type
 }) {
   console.log("Entering CategoryPage component for [categorySlug]");
 
   const { categorySlug } = await params;
-  const page = parseInt(searchParams.page || '1', 10);
+  const query = await searchParams; // Await searchParams
+  const page = parseInt((query.page as string) || "1", 10); // Access the resolved value
   const limit = 10;
   console.log(`Handling route: /${categorySlug}?page=${page}`);
 
@@ -226,7 +263,7 @@ export default async function CategoryPage({
                           </p>
                         )}
                         <div className="post-first-tag">
-                          {post.tags?.length > 0 && (
+                          {Array.isArray(post.tags) && post.tags.length > 0 && (
                               <Link href={`/tags/${post.tags[0].slug}`}>
                                 <span className="text-blue-600 hover:underline">
                                   {post.tags[0].name}
@@ -359,7 +396,19 @@ export async function generateStaticParams() {
     console.log(`Total static params generated: ${params.length}`);
     return params;
   } catch (error) {
-    console.error("Error generating static params:", error.response?.data || error.message);
+    let errorMessage = '';
+    if (typeof error === 'object' && error !== null) {
+      if ('response' in error && typeof (error as any).response?.data !== 'undefined') {
+        errorMessage = (error as any).response.data;
+      } else if ('message' in error && typeof (error as any).message === 'string') {
+        errorMessage = (error as any).message;
+      } else {
+        errorMessage = JSON.stringify(error);
+      }
+    } else {
+      errorMessage = String(error);
+    }
+    console.error("Error generating static params:", errorMessage);
     return [];
   }
 }
