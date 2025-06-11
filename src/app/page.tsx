@@ -1,7 +1,7 @@
 import axios from 'axios';
 import Link from 'next/link';
 import { Row, Col, Card, Space } from 'antd';
-import { ClockCircleOutlined } from '@ant-design/icons';
+// import { ClockCircleOutlined } from '@ant-design/icons';
 import Text from 'antd/es/typography/Text';
 
 // Type definitions
@@ -340,7 +340,7 @@ export default async function Home() {
             <div
               key={post.id}
               className="flex flex-col md:flex-row gap-4 border-b pb-6 hover:bg-gray-50 transition"
-              style={{ borderBottom: '1px solid #ccc' }}
+              style={{ borderBottom: '1px solid #ccc', paddingBottom: '20px' }}
             >
               <Link href={await getPostUrl(post)} className="flex flex-col md:flex-row flex-1">
                 {imageUrl ? (
@@ -369,21 +369,42 @@ export default async function Home() {
               </Link>
               <div className="flex flex-col h-full flex-1" style={{ padding: '0 20px' }}>
                 <div className="post-first-tag">
-                  {(post.tags ?? []).length > 0 && (
-                    <Link href={`/tags/${post.tags![0].slug}`}>
-                      <span className="text-blue-600 hover:underline">
-                        {post.tags![0].title}
-                      </span>
+              
+
+                {/* Define categoryLink for additionalPosts section */}
+                {(() => {
+                  let categoryLink = '/uncategorized';
+                  let categoryTitle = 'Uncategorized';
+                  if (post.categories && post.categories.length > 0) {
+                    const cat = post.categories[0];
+                    categoryLink = `/${cat.slug}`;
+                    categoryTitle = cat.title;
+                    if (cat.parent) {
+                      const parent = typeof cat.parent === "string"
+                        ? null
+                        : cat.parent;
+                      if (parent) {
+                        categoryLink = `/${parent.slug}/${cat.slug}`;
+                      }
+                    }
+                  }
+                  return (
+                    <Link href={categoryLink}>
+                      <h2 className='home-category'>
+                        {categoryTitle}
+                      </h2>
                     </Link>
-                  )}
-                  <span style={{ marginTop: "4px", marginLeft: ((post.tags ?? []).length > 0 ? "8px" : "0") }}>
+                  );
+                })()}
+
+                  {/* <span style={{ marginTop: "4px", marginLeft: ((post.tags ?? []).length > 0 ? "8px" : "0") }}>
                     <Space size={4}>
                       <ClockCircleOutlined style={{ fontSize: "12px", color: "#8c8c8c" }} />
                       <Text type="secondary" style={{ fontSize: "12px" }}>
                         5 Min Read
                       </Text>
                     </Space>
-                  </span>
+                  </span> */}
                   <span className="shareButton" data-url="" style={{ marginLeft: "8px" }}>
                     <svg width="22" height="18" viewBox="0 0 22 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <g clipPath="url(#clip0_4600_28)">

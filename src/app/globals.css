@@ -98,7 +98,11 @@ img {
   padding: 8px;
   border-bottom: 1px solid #ccc !important; /* Ensure border applies */
 }
-
+.home-category {
+    font-weight: 700;
+    color: #194277;
+    font-size: 14px;
+}
 .news-post img {
   border-radius: 6px;
   width: 100%;
@@ -332,11 +336,15 @@ img {
 }
 .post-item-category {
   display: grid;
-  padding-bottom: 20px;
+  /* padding-bottom: 20px; */
   gap: 20px;
   grid-template-columns: 62% 35%;
-  border-bottom: 1px solid rgb(232 233 234);
+  /* border-bottom: 1px solid rgb(232 233 234); */
   row-gap: 10px;
+}
+.bor-1{
+  border-bottom: 1px solid rgb(232 233 234);
+  padding-bottom: 20px; 
 }
 .post-item-category img {
   width: 300px;

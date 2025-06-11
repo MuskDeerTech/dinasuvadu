@@ -1,8 +1,8 @@
 import axios from "axios";
 import Link from "next/link";
-import { Space } from "antd";
-import { ClockCircleOutlined } from "@ant-design/icons";
-import Text from "antd/es/typography/Text";
+// import { Space } from "antd";
+// import { ClockCircleOutlined } from "@ant-design/icons";
+// import Text from "antd/es/typography/Text";
 import 'antd/dist/reset.css';
 import { notFound } from "next/navigation";
 import ShareButton from "../../components/ShareButton";
@@ -252,7 +252,7 @@ export default async function CategoryPage({
                   className="group block bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg transition-all duration-300"
                 >
                   <article className="flex flex-col h-full">
-                    <div className='post-item-category api-title'>
+                    <div className='post-item-category api-title bor-1'>
                       <div className="flex-1 site-main">
                         <h3 className="post-title-1">
                           {post.title}
@@ -270,7 +270,7 @@ export default async function CategoryPage({
                                 </span>
                               </Link>
                             )}
-                          <span style={{ marginTop: "4px" }}>
+                          {/* <span style={{ marginTop: "4px" }}>
                             <Space size={4}>
                               <ClockCircleOutlined
                                 style={{ fontSize: "12px", color: "#8c8c8c" }}
@@ -282,7 +282,7 @@ export default async function CategoryPage({
                                 5 Min Read
                               </Text>
                             </Space>
-                          </span>
+                          </span> */}
                           <ShareButton
                             url={`http://localhost:3001/${categorySlug}/${post.slug}`}
                             title={post.title}

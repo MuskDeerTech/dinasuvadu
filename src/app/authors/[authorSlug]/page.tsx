@@ -1,8 +1,8 @@
 import axios from "axios";
 import Link from "next/link";
-import { Space } from "antd";
-import { ClockCircleOutlined } from "@ant-design/icons";
-import Text from "antd/es/typography/Text";
+// import { Space } from "antd";
+// import { ClockCircleOutlined } from "@ant-design/icons";
+// import Text from "antd/es/typography/Text";
 import "antd/dist/reset.css"; // Import Ant Design CSS
 import ShareButton from "../../../components/ShareButton";
 
@@ -265,7 +265,7 @@ export default async function AuthorPage({
                     className="flex flex-col md:flex-row gap-4 border-b pb-6 hover:bg-gray-50 transition"
                   >
                     <article className="flex flex-col h-full">
-                      <div className="post-item-category api-title flex flex-col md:flex-row gap-4">
+                      <div className="post-item-category bor-1 api-title flex flex-col md:flex-row gap-4">
                         <div className="flex-1 site-main">
                           <h3 className="post-title-1 text-xl font-semibold mb-2">
                             {post.title}
@@ -283,7 +283,7 @@ export default async function AuthorPage({
                                 </span>
                               </Link>
                             )}
-                            <span style={{ marginTop: "4px" }}>
+                            {/* <span style={{ marginTop: "4px" }}>
                               <Space size={4}>
                                 <ClockCircleOutlined
                                   style={{ fontSize: "12px", color: "#8c8c8c" }}
@@ -295,7 +295,7 @@ export default async function AuthorPage({
                                   5 Min Read
                                 </Text>
                               </Space>
-                            </span>
+                            </span> */}
                             <ShareButton
                               url={`${baseUrl}${postUrl}`}
                               title={post.title}
