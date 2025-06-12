@@ -391,32 +391,32 @@ export default async function SubCategoryPostPage({
             className="mb-6 text-sm font-medium text-gray-600"
           >
             <div className="flex items-center space-x-2 breadcrumbs">
-              <span>
+              
                 <Link
                   href="/"
                   className="text-indigo-600 hover:underline transition-colors"
                 >
                   Home
                 </Link>
-              </span>
+          
               <span className="text-gray-400">{">"}</span>
-              <span>
+        
                 <Link
                   href={`/${categorySlug}`}
                   className="text-indigo-600 hover:underline transition-colors"
                 >
                   {parentCategory.title}
                 </Link>
-              </span>
+     
               <span className="text-gray-400">{">"}</span>
-              <span>
+ 
                 <Link
                   href={`/${categorySlug}/${postSlug}`}
                   className="text-indigo-600 hover:underline transition-colors"
                 >
                   {subCategoryTitle}
                 </Link>
-              </span>
+            
             </div>
           </nav>
 

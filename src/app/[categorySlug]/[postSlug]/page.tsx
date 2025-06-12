@@ -903,7 +903,7 @@ export default async function PostOrSubCategoryPage({
            <div className="post-svg">
             <h2 className="category-title">Follow us</h2>
             <div className="social-icons">
-              <Link
+              <a
                 className="whatsapp"
                 href="https://whatsapp.com/channel/0029Va4U8pVKLaHkkCs8Xx0L"
                 aria-label="Menu"
@@ -938,9 +938,9 @@ export default async function PostOrSubCategoryPage({
                   </g>
                 </svg>
                 Whatsapp
-              </Link>
+              </a>
 
-              <Link
+              <a
                 className="g-news"
                 href="https://news.google.com/publications/CAAiEHlXIe0p4nrMZPqHkIfq8H4qFAgKIhB5VyHtKeJ6zGT6h5CH6vB-?hl=ta&amp;gl=IN&amp;ceid=IN%3Ata"
                 aria-label="Menu"
@@ -1075,13 +1075,14 @@ export default async function PostOrSubCategoryPage({
                   </defs>
                 </svg>
                 Google News
-              </Link>
+              </a>
 
-              <Link
+              <a
                 className="y-tube"
                 href="https://www.youtube.com/@dinasuvadumedia"
                 target="_blank"
                 aria-label="Menu"
+                rel="noopener"
               >
                 <svg width="15" height="11" viewBox="0 0 15 11" fill="none">
                   <g clipPath="url(#clip0_4590_43)">
@@ -1101,12 +1102,13 @@ export default async function PostOrSubCategoryPage({
                   </defs>
                 </svg>
                 Youtube
-              </Link>
-              <Link
+              </a>
+              <a
                 className="fb"
                 href="https://m.facebook.com/dinasuvaduta?wtsid=rdr_0nhAQjg4CKxUhSz4b"
                 target="_blank"
                 aria-label="Visit our Facebook Page"
+                rel="noopener"
               >
                 <svg
                   width="10"
@@ -1122,12 +1124,13 @@ export default async function PostOrSubCategoryPage({
                   ></path>
                 </svg>
                 Facebook
-              </Link>
-              <Link
+              </a>
+              <a
                 className="twit"
                 href="https://x.com/Dinasuvadu"
                 target="_blank"
                 aria-label="Follow us on X (formerly Twitter)"
+                rel="noopener"
               >
                 <svg
                   width="16"
@@ -1150,12 +1153,13 @@ export default async function PostOrSubCategoryPage({
                   </defs>
                 </svg>
                 Twitter
-              </Link>
-              <Link
+              </a>
+              <a
                 className="insta"
                 href="https://www.instagram.com/dinasuvadunews/"
                 target="_blank"
                 aria-label="Follow us on Instagram"
+                rel="noopener"
               >
                 <svg
                   width="16"
@@ -1222,7 +1226,7 @@ export default async function PostOrSubCategoryPage({
                   </defs>
                 </svg>
                 Instagram
-              </Link>
+              </a>
             </div>
           </div>
 
