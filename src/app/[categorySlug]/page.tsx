@@ -246,12 +246,12 @@ export default async function CategoryPage({
               const imageAlt = post.heroImage?.alt || post.title;
 
               return (
-                <Link
+                <article
                   key={post.id}
-                  href={`/${categorySlug}/${post.slug}`}
+                  
                   className="group block bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg transition-all duration-300"
                 >
-                  <article className="flex flex-col h-full">
+                  <Link href={`/${categorySlug}/${post.slug}`} className="flex flex-col h-full">
                     <div className='post-item-category api-title bor-1'>
                       <div className="flex-1 site-main">
                         <h3 className="post-title-1">
@@ -305,8 +305,8 @@ export default async function CategoryPage({
                         </div>
                       )}
                     </div>
-                  </article>
-                </Link>
+                  </Link>
+                </article>
               );
             })}
           </div>

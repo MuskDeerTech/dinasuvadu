@@ -245,12 +245,12 @@ export default async function TagPage({
                 }
 
                 return (
-                  <Link
+                  <article
                     key={post.id}
-                    href={postUrl}
+                    
                     className="flex flex-col md:flex-row gap-4 border-b pb-6 hover:bg-gray-50 transition"
                   >
-                    <article className="flex flex-col h-full">
+                    <Link href={postUrl} className="flex flex-col h-full">
                       <div className="post-item-category api-title bor-1">
                         <div className="flex-1 site-main">
                           <h3 className="post-title-1">{post.title}</h3>
@@ -304,8 +304,8 @@ export default async function TagPage({
                           </div>
                         )}
                       </div>
-                    </article>
-                  </Link>
+                    </Link>
+                  </article>
                 );
               })
             )}
