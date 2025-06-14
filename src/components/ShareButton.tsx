@@ -9,7 +9,11 @@ interface ShareButtonProps {
   description?: string;
 }
 
-export default function ShareButton({ url, title, description }: ShareButtonProps) {
+export default function ShareButton({
+  url,
+  title,
+  description,
+}: ShareButtonProps) {
   const handleShare = async (e: MouseEvent) => {
     e.stopPropagation();
 

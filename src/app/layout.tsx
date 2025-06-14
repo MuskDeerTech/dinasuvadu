@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import 'antd/dist/reset.css'; // For Ant Design v5+
+import "antd/dist/reset.css";
 import Header from "../components/Header";
-import axios from 'axios';
+import axios from "axios";
 import Footer from "../components/Footer";
 
 type Category = {
@@ -13,34 +13,38 @@ type Category = {
   parent?: { id: string; slug: string; title: string } | string;
 };
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 async function fetchCategories(): Promise<Category[]> {
   try {
     const res = await axios.get(`${apiUrl}/api/categories?depth=2`);
     const categories = res.data.docs || [];
-    console.log('Fetched categories for layout:', categories);
+    console.log("Fetched categories for layout:", categories);
     return categories;
   } catch (err) {
-    if (err && typeof err === 'object' && 'response' in err && err.response && typeof err.response === 'object' && 'data' in err.response) {
-      // @ts-ignore
-      console.error('Error fetching categories for layout:', err.response.data);
+    if (
+      err &&
+      typeof err === "object" &&
+      "response" in err &&
+      err.response &&
+      typeof err.response === "object" &&
+      "data" in err.response
+    ) {
+      console.error("Error fetching categories for layout:", err.response.data);
     } else if (err instanceof Error) {
-      console.error('Error fetching categories for layout:', err.message);
+      console.error("Error fetching categories for layout:", err.message);
     } else {
-      console.error('Error fetching categories for layout:', err);
+      console.error("Error fetching categories for layout:", err);
     }
     return [];
   }
 }
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
   subsets: ["latin"],
 });
 
@@ -58,7 +62,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className={`${geistSans.className} ${geistMono.className}`}>
         <Header categories={categories} />
         {children}
         <Footer />

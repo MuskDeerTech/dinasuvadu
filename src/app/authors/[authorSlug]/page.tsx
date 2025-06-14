@@ -75,7 +75,12 @@ async function fetchAuthors(): Promise<Author[]> {
     console.log("Fetched authors:", JSON.stringify(authors, null, 2));
     return authors;
   } catch (err) {
-    if (typeof err === "object" && err !== null && "response" in err && (err as any).response?.data) {
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      "response" in err &&
+      (err as any).response?.data
+    ) {
       console.error("Error fetching authors:", (err as any).response.data);
     } else if (typeof err === "object" && err !== null && "message" in err) {
       console.error("Error fetching authors:", (err as any).message);
@@ -106,8 +111,13 @@ async function fetchAuthorBySlug(slug: string): Promise<Author | null> {
   } catch (err) {
     console.error(
       `Error fetching author with slug ${slug}:`,
-      (typeof err === "object" && err !== null && "response" in err && (err as any).response?.data) ||
-      (typeof err === "object" && err !== null && "message" in err ? (err as any).message : String(err))
+      (typeof err === "object" &&
+        err !== null &&
+        "response" in err &&
+        (err as any).response?.data) ||
+        (typeof err === "object" && err !== null && "message" in err
+          ? (err as any).message
+          : String(err))
     );
     return null;
   }
@@ -138,8 +148,13 @@ async function fetchPostsByAuthor(
   } catch (err) {
     console.error(
       `Error fetching posts for author ID ${authorId}:`,
-      (typeof err === "object" && err !== null && "response" in err && (err as any).response?.data) ||
-      (typeof err === "object" && err !== null && "message" in err ? (err as any).message : String(err))
+      (typeof err === "object" &&
+        err !== null &&
+        "response" in err &&
+        (err as any).response?.data) ||
+        (typeof err === "object" && err !== null && "message" in err
+          ? (err as any).message
+          : String(err))
     );
     return { posts: [], total: 0 };
   }
@@ -150,9 +165,12 @@ async function fetchParentCategory(
 ): Promise<{ slug: string; title: string } | null> {
   try {
     console.log(`Fetching parent category with ID: ${parentId}`);
-    const res = await axios.get(`${apiUrl}/api/categories/${parentId}?depth=1`, {
-      timeout: 10000,
-    });
+    const res = await axios.get(
+      `${apiUrl}/api/categories/${parentId}?depth=1`,
+      {
+        timeout: 10000,
+      }
+    );
     const parentCategory = res.data || null;
     if (!parentCategory) {
       console.log(`No parent category found for ID: ${parentId}`);
@@ -261,12 +279,11 @@ export default async function AuthorPage({
                 return (
                   <article
                     key={post.id}
-                   
                     className="flex flex-col md:flex-row gap-4 border-b pb-6 hover:bg-gray-50 transition"
                   >
-                    <Link  href={postUrl} className="flex flex-col h-full">
-                      <div className="post-item-category bor-1 api-title flex flex-col md:flex-row gap-4">
-                        <div className="flex-1 site-main">
+                    <div className="post-item-category bor-1 api-title flex flex-col md:flex-row gap-4">
+                      <div className="flex-1 site-main">
+                        <Link href={postUrl} className="flex flex-col h-full">
                           <h3 className="post-title-1 text-xl font-semibold mb-2">
                             {post.title}
                           </h3>
@@ -275,15 +292,16 @@ export default async function AuthorPage({
                               {post.meta.description}
                             </p>
                           )}
-                          <div className="post-first-tag flex items-center gap-3">
-                            {Array.isArray(post.tags) && post.tags.length > 0 && (
-                              <Link href={`/tags/${post.tags[0].slug}`}>
-                                <span className="text-blue-600 hover:underline text-sm">
-                                  {post.tags[0].name}
-                                </span>
-                              </Link>
-                            )}
-                            {/* <span style={{ marginTop: "4px" }}>
+                        </Link>
+                        <div className="post-first-tag flex items-center gap-3">
+                          {Array.isArray(post.tags) && post.tags.length > 0 && (
+                            <Link href={`/tags/${post.tags[0].slug}`}>
+                              <span className="text-blue-600 hover:underline text-sm">
+                                {post.tags[0].name}
+                              </span>
+                            </Link>
+                          )}
+                          {/* <span style={{ marginTop: "4px" }}>
                               <Space size={4}>
                                 <ClockCircleOutlined
                                   style={{ fontSize: "12px", color: "#8c8c8c" }}
@@ -296,30 +314,29 @@ export default async function AuthorPage({
                                 </Text>
                               </Space>
                             </span> */}
-                            <ShareButton
-                              url={`${baseUrl}${postUrl}`}
-                              title={post.title}
-                              description={post.meta?.description}
-                            />
-                          </div>
+                          <ShareButton
+                            url={`${baseUrl}${postUrl}`}
+                            title={post.title}
+                            description={post.meta?.description}
+                          />
                         </div>
-                        {imageUrl ? (
-                          <div className="relative w-full md:w-48 h-48 overflow-hidden rounded-t-lg site-main">
-                            <img
-                              src={imageUrl}
-                              alt={imageAlt}
-                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-full md:w-48 h-48 bg-gray-100 rounded-t-lg flex items-center justify-center">
-                            <span className="text-gray-400 text-sm">
-                              No Image
-                            </span>
-                          </div>
-                        )}
                       </div>
-                    </Link>
+                      {imageUrl ? (
+                        <div className="relative w-full md:w-48 h-48 overflow-hidden rounded-t-lg site-main">
+                          <img
+                            src={imageUrl}
+                            alt={imageAlt}
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-full md:w-48 h-48 bg-gray-100 rounded-t-lg flex items-center justify-center">
+                          <span className="text-gray-400 text-sm">
+                            No Image
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </article>
                 );
               })

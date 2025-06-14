@@ -68,7 +68,14 @@ async function fetchTags(): Promise<Tag[]> {
     console.log("Fetched tags:", tags);
     return tags;
   } catch (err) {
-    if (err && typeof err === "object" && "response" in err && err.response && typeof err.response === "object" && "data" in err.response) {
+    if (
+      err &&
+      typeof err === "object" &&
+      "response" in err &&
+      err.response &&
+      typeof err.response === "object" &&
+      "data" in err.response
+    ) {
       // @ts-ignore
       console.error("Error fetching tags:", err.response.data);
     } else if (err && typeof err === "object" && "message" in err) {
@@ -94,9 +101,17 @@ async function fetchTagBySlug(slug: string): Promise<Tag | null> {
     return tag;
   } catch (err) {
     if (err && typeof err === "object") {
-      if ("response" in err && err.response && typeof err.response === "object" && "data" in err.response) {
+      if (
+        "response" in err &&
+        err.response &&
+        typeof err.response === "object" &&
+        "data" in err.response
+      ) {
         // @ts-ignore
-        console.error(`Error fetching tag with slug ${slug}:`, err.response.data);
+        console.error(
+          `Error fetching tag with slug ${slug}:`,
+          err.response.data
+        );
       } else if ("message" in err) {
         // @ts-ignore
         console.error(`Error fetching tag with slug ${slug}:`, err.message);
@@ -130,7 +145,12 @@ async function fetchPostsByTag(
   } catch (err) {
     let errorMessage = "";
     if (err && typeof err === "object") {
-      if ("response" in err && err.response && typeof err.response === "object" && "data" in err.response) {
+      if (
+        "response" in err &&
+        err.response &&
+        typeof err.response === "object" &&
+        "data" in err.response
+      ) {
         // @ts-ignore
         errorMessage = err.response.data;
       } else if ("message" in err) {
@@ -142,10 +162,7 @@ async function fetchPostsByTag(
     } else {
       errorMessage = String(err);
     }
-    console.error(
-      `Error fetching posts for tag ID ${tagId}:`,
-      errorMessage
-    );
+    console.error(`Error fetching posts for tag ID ${tagId}:`, errorMessage);
     return { posts: [], total: 0 };
   }
 }
@@ -154,9 +171,12 @@ async function fetchParentCategory(
   parentId: string
 ): Promise<{ slug: string; title: string } | null> {
   try {
-    const res = await axios.get(`${apiUrl}/api/categories/${parentId}?depth=1`, {
-      timeout: 10000,
-    });
+    const res = await axios.get(
+      `${apiUrl}/api/categories/${parentId}?depth=1`,
+      {
+        timeout: 10000,
+      }
+    );
     const parentCategory = res.data || null;
     if (!parentCategory) {
       console.log(`No parent category found for ID: ${parentId}`);
@@ -169,7 +189,12 @@ async function fetchParentCategory(
   } catch (err) {
     let errorMessage = "";
     if (err && typeof err === "object") {
-      if ("response" in err && err.response && typeof err.response === "object" && "data" in err.response) {
+      if (
+        "response" in err &&
+        err.response &&
+        typeof err.response === "object" &&
+        "data" in err.response
+      ) {
         // @ts-ignore
         errorMessage = err.response.data;
       } else if ("message" in err) {
@@ -213,7 +238,8 @@ export default async function TagPage({
   return (
     <div className="site">
       <div className="site-main">
-        <h1 className="category-title">Tag: {tag.name}</h1> {/* Changed tag.title to tag.name */}
+        <h1 className="category-title">Tag: {tag.name}</h1>{" "}
+        {/* Changed tag.title to tag.name */}
       </div>
 
       {posts.length === 0 ? (
@@ -247,64 +273,54 @@ export default async function TagPage({
                 return (
                   <article
                     key={post.id}
-                    
                     className="flex flex-col md:flex-row gap-4 border-b pb-6 hover:bg-gray-50 transition"
                   >
-                    <Link href={postUrl} className="flex flex-col h-full">
-                      <div className="post-item-category api-title bor-1">
-                        <div className="flex-1 site-main">
+                    <div className="post-item-category api-title bor-1">
+                      <div className="flex-1 site-main">
+                        {/* Wrap only the title and description in the Link */}
+                        <Link href={postUrl} className="flex flex-col h-full">
                           <h3 className="post-title-1">{post.title}</h3>
                           {post.meta?.description && (
                             <p className="post-description">
                               {post.meta.description}
                             </p>
                           )}
-                          <div className="post-first-tag">
-                            {(post.tags ?? []).length > 0 && (
-                              <Link href={`/tags/${post.tags![0].slug}`}>
-                                <span className="text-blue-600 hover:underline">
-                                  {post.tags![0].name}
-                                </span>
-                              </Link>
-                            )}
-                            {/* <span style={{ marginTop: "4px" }}>
-                              <Space size={4}>
-                                <ClockCircleOutlined
-                                  style={{ fontSize: "12px", color: "#8c8c8c" }}
-                                />
-                                <Text
-                                  type="secondary"
-                                  style={{ fontSize: "12px" }}
-                                >
-                                  5 Min Read
-                                </Text>
-                              </Space>
-                            </span> */}
-                            <ShareButton
-                              url={`${baseUrl}${postUrl}`} // Updated to use dynamic baseUrl
-                              title={post.title}
-                              description={post.meta?.description}
-                            />
-                          </div>
+                        </Link>
+                        <div className="post-first-tag">
+                          {(post.tags ?? []).length > 0 && (
+                            <Link href={`/tags/${post.tags![0].slug}`}>
+                              <span className="text-blue-600 hover:underline">
+                                {post.tags![0].name}
+                              </span>
+                            </Link>
+                          )}
+                          <ShareButton
+                            url={`${baseUrl}${postUrl}`}
+                            title={post.title}
+                            description={post.meta?.description}
+                          />
                         </div>
-                        {/* Image */}
-                        {imageUrl ? (
-                          <div className="relative w-full h-48 overflow-hidden rounded-t-lg site-main">
-                            <img
-                              src={imageUrl}
-                              alt={imageAlt}
-                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-full h-48 bg-gray-100 rounded-t-lg flex items-center justify-center">
-                            <span className="text-gray-400 text-sm">
-                              No Image
-                            </span>
-                          </div>
-                        )}
                       </div>
-                    </Link>
+                      {/* Image */}
+                      {imageUrl ? (
+                        <Link
+                          href={postUrl}
+                          className="relative w-full h-48 overflow-hidden rounded-t-lg site-main"
+                        >
+                          <img
+                            src={imageUrl}
+                            alt={imageAlt}
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                        </Link>
+                      ) : (
+                        <div className="w-full h-48 bg-gray-100 rounded-t-lg flex items-center justify-center">
+                          <span className="text-gray-400 text-sm">
+                            No Image
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </article>
                 );
               })

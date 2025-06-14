@@ -74,7 +74,12 @@ export default function TermsConditions() {
         <p>
           Thank you for using Dinasuvadu.com. If you have any questions or
           concerns about these Terms of Use, please contact us at [
-          <a style={{ color: "#4169e1" }} href="mailto:mail@www.dinasuvadu.com" target="_new" rel="noopener">
+          <a
+            style={{ color: "#4169e1" }}
+            href="mailto:mail@www.dinasuvadu.com"
+            target="_new"
+            rel="noopener"
+          >
             mail@www.dinasuvadu.com
           </a>
           ].
@@ -323,18 +328,52 @@ export default function TermsConditions() {
         <p>
           <strong>GENERAL:</strong>
         </p>
-      
-<p>The General section of the Terms of Use for Dinasuvadu.com outlines the terms and conditions for accessing and using the website, including the use of content, user conduct, and third-party links. The section also includes a disclaimer of warranties and limitation of liability, as well as provisions for indemnification, modification of terms, and governing law. By using the website, users agree to comply with these terms and conditions, and any updates or changes made to them.</p>
 
-<h4 className="hdg3"><strong>GOVERNING LAW &amp; JURISDICTION:</strong></h4>
+        <p>
+          The General section of the Terms of Use for Dinasuvadu.com outlines
+          the terms and conditions for accessing and using the website,
+          including the use of content, user conduct, and third-party links. The
+          section also includes a disclaimer of warranties and limitation of
+          liability, as well as provisions for indemnification, modification of
+          terms, and governing law. By using the website, users agree to comply
+          with these terms and conditions, and any updates or changes made to
+          them.
+        </p>
 
-<p>The Governing Law and Jurisdiction section of the Terms of Use for Dinasuvadu.com states that these terms shall be governed by and construed in accordance with the laws of India. Any dispute arising out of or in connection with these terms shall be submitted to the exclusive jurisdiction of the courts located in India.</p>
+        <h4 className="hdg3">
+          <strong>GOVERNING LAW &amp; JURISDICTION:</strong>
+        </h4>
 
-<p>This means that any legal disputes related to the use of the website or these terms will be resolved according to the laws of India and through the courts of India. By accessing or using the website, users agree to submit to the exclusive jurisdiction of the courts located in India for any legal proceedings related to the use of the website or these terms.</p>
+        <p>
+          The Governing Law and Jurisdiction section of the Terms of Use for
+          Dinasuvadu.com states that these terms shall be governed by and
+          construed in accordance with the laws of India. Any dispute arising
+          out of or in connection with these terms shall be submitted to the
+          exclusive jurisdiction of the courts located in India.
+        </p>
 
+        <p>
+          This means that any legal disputes related to the use of the website
+          or these terms will be resolved according to the laws of India and
+          through the courts of India. By accessing or using the website, users
+          agree to submit to the exclusive jurisdiction of the courts located in
+          India for any legal proceedings related to the use of the website or
+          these terms.
+        </p>
 
-<p>If you have any concerns about your child’s use of our website, please contact us at [<a style={{ color: "#4169e1" }} href="mailto:mail@www.dinasuvadu.com" target="_new" rel="noopener">mail@www.dinasuvadu.com</a>].</p>
-
+        <p>
+          If you have any concerns about your child’s use of our website, please
+          contact us at [
+          <a
+            style={{ color: "#4169e1" }}
+            href="mailto:mail@www.dinasuvadu.com"
+            target="_new"
+            rel="noopener"
+          >
+            mail@www.dinasuvadu.com
+          </a>
+          ].
+        </p>
       </div>
     </div>
   );

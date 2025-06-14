@@ -144,7 +144,10 @@ async function fetchPostsBySearch(
   } catch (err) {
     let errorMessage = "";
     if (typeof err === "object" && err !== null) {
-      if ("response" in err && typeof (err as any).response?.data !== "undefined") {
+      if (
+        "response" in err &&
+        typeof (err as any).response?.data !== "undefined"
+      ) {
         errorMessage = (err as any).response.data;
       } else if ("message" in err && typeof (err as any).message === "string") {
         errorMessage = (err as any).message;
@@ -167,9 +170,12 @@ async function fetchParentCategory(
   parentId: string
 ): Promise<{ slug: string; title: string } | null> {
   try {
-    const res = await axios.get(`${apiUrl}/api/categories/${parentId}?depth=1`, {
-      timeout: 10000,
-    });
+    const res = await axios.get(
+      `${apiUrl}/api/categories/${parentId}?depth=1`,
+      {
+        timeout: 10000,
+      }
+    );
     const parentCategory = res.data || null;
     if (!parentCategory) {
       console.log(`No parent category found for ID: ${parentId}`);
@@ -182,7 +188,10 @@ async function fetchParentCategory(
   } catch (err) {
     let errorMessage = "";
     if (typeof err === "object" && err !== null) {
-      if ("response" in err && typeof (err as any).response?.data !== "undefined") {
+      if (
+        "response" in err &&
+        typeof (err as any).response?.data !== "undefined"
+      ) {
         errorMessage = (err as any).response.data;
       } else if ("message" in err && typeof (err as any).message === "string") {
         errorMessage = (err as any).message;
@@ -254,61 +263,61 @@ export default async function SearchPage({
                     key={post.id}
                     className="flex flex-col md:flex-row gap-4 border-b pb-6 hover:bg-gray-50 transition"
                   >
-                    <Link href={postUrl} className="flex flex-col h-full">
-                      <div className="post-item-category api-title bor-1">
-                        <div className="flex-1 site-main">
+                    <div className="post-item-category api-title bor-1">
+                      <div className="flex-1 site-main">
+                        <Link href={postUrl} className="flex flex-col h-full">
                           <h3 className="post-title-1">{post.title}</h3>
                           {post.meta?.description && (
                             <p className="post-description">
                               {post.meta.description}
                             </p>
                           )}
-                          <div className="post-first-tag">
-                            {post.tags && post.tags.length > 0 && (
-                              <Link href={`/tags/${post.tags[0].slug}`}>
-                                <span className="text-blue-600 hover:underline">
-                                  {post.tags[0].name}
-                                </span>
-                              </Link>
-                            )}
-                            <span style={{ marginTop: "4px" }}>
-                              <Space size={4}>
-                                <ClockCircleOutlined
-                                  style={{ fontSize: "12px", color: "#8c8c8c" }}
-                                />
-                                <Text
-                                  type="secondary"
-                                  style={{ fontSize: "12px" }}
-                                >
-                                  {readTime}
-                                </Text>
-                              </Space>
-                            </span>
-                            <ShareButton
-                              url={`${baseUrl}${postUrl}`} // Updated to use dynamic baseUrl
-                              title={post.title}
-                              description={post.meta?.description}
-                            />
-                          </div>
+                        </Link>
+                        <div className="post-first-tag">
+                          {post.tags && post.tags.length > 0 && (
+                            <Link href={`/tags/${post.tags[0].slug}`}>
+                              <span className="text-blue-600 hover:underline">
+                                {post.tags[0].name}
+                              </span>
+                            </Link>
+                          )}
+                          <span style={{ marginTop: "4px" }}>
+                            <Space size={4}>
+                              <ClockCircleOutlined
+                                style={{ fontSize: "12px", color: "#8c8c8c" }}
+                              />
+                              <Text
+                                type="secondary"
+                                style={{ fontSize: "12px" }}
+                              >
+                                {readTime}
+                              </Text>
+                            </Space>
+                          </span>
+                          <ShareButton
+                            url={`${baseUrl}${postUrl}`} // Updated to use dynamic baseUrl
+                            title={post.title}
+                            description={post.meta?.description}
+                          />
                         </div>
-                        {imageUrl ? (
-                          <div className="relative w-full md:w-48 h-48 overflow-hidden rounded-t-lg site-main">
-                            <img
-                              src={imageUrl}
-                              alt={imageAlt}
-                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                              style={{ borderRadius: "10px" }}
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-full md:w-48 h-48 bg-gray-100 rounded-t-lg flex items-center justify-center">
-                            <span className="text-gray-400 text-sm">
-                              No Image
-                            </span>
-                          </div>
-                        )}
                       </div>
-                    </Link>
+                      {imageUrl ? (
+                        <div className="relative w-full md:w-48 h-48 overflow-hidden rounded-t-lg site-main">
+                          <img
+                            src={imageUrl}
+                            alt={imageAlt}
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            style={{ borderRadius: "10px" }}
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-full md:w-48 h-48 bg-gray-100 rounded-t-lg flex items-center justify-center">
+                          <span className="text-gray-400 text-sm">
+                            No Image
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </article>
                 );
               })
@@ -320,9 +329,9 @@ export default async function SearchPage({
             <div className="flex justify-center space-x-2 mt-8 web-stories-pagination">
               {page > 1 && (
                 <Link
-                  href={`/search?s=${encodeURIComponent(
-                    query
-                  )}&page=${page - 1}`}
+                  href={`/search?s=${encodeURIComponent(query)}&page=${
+                    page - 1
+                  }`}
                   className="pagination-link"
                 >
                   Prev
@@ -366,9 +375,9 @@ export default async function SearchPage({
 
               {page < totalPages && (
                 <Link
-                  href={`/search?s=${encodeURIComponent(
-                    query
-                  )}&page=${page + 1}`}
+                  href={`/search?s=${encodeURIComponent(query)}&page=${
+                    page + 1
+                  }`}
                   className="pagination-link"
                 >
                   Next

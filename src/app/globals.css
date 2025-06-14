@@ -99,9 +99,9 @@ img {
   border-bottom: 1px solid #ccc !important; /* Ensure border applies */
 }
 .home-category {
-    font-weight: 700;
-    color: #194277;
-    font-size: 14px;
+  font-weight: 700;
+  color: #194277;
+  font-size: 14px;
 }
 .news-post img {
   border-radius: 6px;
@@ -342,9 +342,9 @@ img {
   /* border-bottom: 1px solid rgb(232 233 234); */
   row-gap: 10px;
 }
-.bor-1{
+.bor-1 {
   border-bottom: 1px solid rgb(232 233 234);
-  padding-bottom: 20px; 
+  padding-bottom: 20px;
 }
 .post-item-category img {
   width: 300px;
@@ -502,7 +502,6 @@ a:hover {
   padding-top: 15px;
 }
 
-
 .drawer-menu {
   display: flex;
   gap: 20px;
@@ -551,7 +550,8 @@ a:hover {
   margin: 0 auto;
   opacity: 0;
   transform: translateY(-10px);
-  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out, max-height 0.3s ease-in-out;
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out,
+    max-height 0.3s ease-in-out;
   pointer-events: none;
 }
 
@@ -705,12 +705,12 @@ a:hover {
   font-family: "Mukta Malar", "san-serif";
   font-size: clamp(12px, 2vw, 14px);
 }
-.post-desc{
+.post-desc {
   font-family: "Mukta Malar", "san-serif";
-    color: #28313A;
-    font-size: clamp(16px, 2vw, 18px);
-    margin-block: 1em;
-    margin-bottom: 2em !important;
+  color: #28313a;
+  font-size: clamp(16px, 2vw, 18px);
+  margin-block: 1em;
+  margin-bottom: 2em !important;
 }
 .site-footer {
   background-color: #333333;

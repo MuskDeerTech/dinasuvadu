@@ -89,9 +89,15 @@ async function fetchCategoryBySlug(slug: string): Promise<Category | null> {
   } catch (error) {
     let errorMsg = "";
     if (typeof error === "object" && error !== null) {
-      if ("response" in error && typeof (error as any).response?.data !== "undefined") {
+      if (
+        "response" in error &&
+        typeof (error as any).response?.data !== "undefined"
+      ) {
         errorMsg = (error as any).response.data;
-      } else if ("message" in error && typeof (error as any).message === "string") {
+      } else if (
+        "message" in error &&
+        typeof (error as any).message === "string"
+      ) {
         errorMsg = (error as any).message;
       } else {
         errorMsg = JSON.stringify(error);
@@ -99,10 +105,7 @@ async function fetchCategoryBySlug(slug: string): Promise<Category | null> {
     } else {
       errorMsg = String(error);
     }
-    console.error(
-      `Error fetching category with slug ${slug}:`,
-      errorMsg
-    );
+    console.error(`Error fetching category with slug ${slug}:`, errorMsg);
     return null;
   }
 }
@@ -130,7 +133,10 @@ async function fetchParentCategory(
   } catch (err) {
     let errorMsg = "";
     if (typeof err === "object" && err !== null) {
-      if ("response" in err && typeof (err as any).response?.data !== "undefined") {
+      if (
+        "response" in err &&
+        typeof (err as any).response?.data !== "undefined"
+      ) {
         errorMsg = (err as any).response.data;
       } else if ("message" in err && typeof (err as any).message === "string") {
         errorMsg = (err as any).message;
@@ -166,9 +172,15 @@ async function fetchPost(slug: string): Promise<Post | null> {
   } catch (error) {
     let errorMsg = "";
     if (typeof error === "object" && error !== null) {
-      if ("response" in error && typeof (error as any).response?.data !== "undefined") {
+      if (
+        "response" in error &&
+        typeof (error as any).response?.data !== "undefined"
+      ) {
         errorMsg = (error as any).response.data;
-      } else if ("message" in error && typeof (error as any).message === "string") {
+      } else if (
+        "message" in error &&
+        typeof (error as any).message === "string"
+      ) {
         errorMsg = (error as any).message;
       } else {
         errorMsg = JSON.stringify(error);
@@ -176,10 +188,7 @@ async function fetchPost(slug: string): Promise<Post | null> {
     } else {
       errorMsg = String(error);
     }
-    console.error(
-      "Error fetching post with slug " + slug + ":",
-      errorMsg
-    );
+    console.error("Error fetching post with slug " + slug + ":", errorMsg);
     return null;
   }
 }
@@ -197,9 +206,15 @@ async function fetchLatestPosts(currentPostSlug: string): Promise<Post[]> {
   } catch (error) {
     let errorMsg = "";
     if (typeof error === "object" && error !== null) {
-      if ("response" in error && typeof (error as any).response?.data !== "undefined") {
+      if (
+        "response" in error &&
+        typeof (error as any).response?.data !== "undefined"
+      ) {
         errorMsg = (error as any).response.data;
-      } else if ("message" in error && typeof (error as any).message === "string") {
+      } else if (
+        "message" in error &&
+        typeof (error as any).message === "string"
+      ) {
         errorMsg = (error as any).message;
       } else {
         errorMsg = JSON.stringify(error);
@@ -207,10 +222,7 @@ async function fetchLatestPosts(currentPostSlug: string): Promise<Post[]> {
     } else {
       errorMsg = String(error);
     }
-    console.error(
-      "Error fetching latest posts:",
-      errorMsg
-    );
+    console.error("Error fetching latest posts:", errorMsg);
     return [];
   }
 }
@@ -236,7 +248,10 @@ async function fetchCategoryById(
   } catch (err) {
     let errorMsg = "";
     if (typeof err === "object" && err !== null) {
-      if ("response" in err && typeof (err as any).response?.data !== "undefined") {
+      if (
+        "response" in err &&
+        typeof (err as any).response?.data !== "undefined"
+      ) {
         errorMsg = (err as any).response.data;
       } else if ("message" in err && typeof (err as any).message === "string") {
         errorMsg = (err as any).message;
@@ -246,10 +261,7 @@ async function fetchCategoryById(
     } else {
       errorMsg = String(err);
     }
-    console.error(
-      `Error fetching category with ID ${categoryId}:`,
-      errorMsg
-    );
+    console.error(`Error fetching category with ID ${categoryId}:`, errorMsg);
     return null;
   }
 }
@@ -391,32 +403,30 @@ export default async function SubCategoryPostPage({
             className="mb-6 text-sm font-medium text-gray-600"
           >
             <div className="flex items-center space-x-2 breadcrumbs">
-              
-                <Link
-                  href="/"
-                  className="text-indigo-600 hover:underline transition-colors"
-                >
-                  Home
-                </Link>
-          
+              <Link
+                href="/"
+                className="text-indigo-600 hover:underline transition-colors"
+              >
+                Home
+              </Link>
+
               <span className="text-gray-400">{">"}</span>
-        
-                <Link
-                  href={`/${categorySlug}`}
-                  className="text-indigo-600 hover:underline transition-colors"
-                >
-                  {parentCategory.title}
-                </Link>
-     
+
+              <Link
+                href={`/${categorySlug}`}
+                className="text-indigo-600 hover:underline transition-colors"
+              >
+                {parentCategory.title}
+              </Link>
+
               <span className="text-gray-400">{">"}</span>
- 
-                <Link
-                  href={`/${categorySlug}/${postSlug}`}
-                  className="text-indigo-600 hover:underline transition-colors"
-                >
-                  {subCategoryTitle}
-                </Link>
-            
+
+              <Link
+                href={`/${categorySlug}/${postSlug}`}
+                className="text-indigo-600 hover:underline transition-colors"
+              >
+                {subCategoryTitle}
+              </Link>
             </div>
           </nav>
 
@@ -445,19 +455,23 @@ export default async function SubCategoryPostPage({
                       >
                         {author.name}
                       </Link>
-                      {post.populatedAuthors && i < post.populatedAuthors.length - 1 && ", "}
+                      {post.populatedAuthors &&
+                        i < post.populatedAuthors.length - 1 &&
+                        ", "}
                     </span>
                   ))}
                 </>
               )}
-              {post.populatedAuthors && post.populatedAuthors.length > 0 && post.publishedAt && (
-                <span
-                  className="text-gray-400 mx-2"
-                  style={{ marginLeft: "5px" }}
-                >
-                  Posted on{" "}
-                </span>
-              )}
+              {post.populatedAuthors &&
+                post.populatedAuthors.length > 0 &&
+                post.publishedAt && (
+                  <span
+                    className="text-gray-400 mx-2"
+                    style={{ marginLeft: "5px" }}
+                  >
+                    Posted on{" "}
+                  </span>
+                )}
               {post.publishedAt && (
                 <span>
                   {new Date(post.publishedAt).toLocaleDateString("en-US", {
@@ -913,7 +927,7 @@ export default async function SubCategoryPostPage({
                 href="https://www.youtube.com/@dinasuvadumedia"
                 target="_blank"
                 aria-label="Menu"
-                 rel="noopener noreferrer"
+                rel="noopener noreferrer"
               >
                 <svg width="15" height="11" viewBox="0 0 15 11" fill="none">
                   <g clipPath="url(#clip0_4590_43)">
@@ -939,7 +953,7 @@ export default async function SubCategoryPostPage({
                 href="https://m.facebook.com/dinasuvaduta?wtsid=rdr_0nhAQjg4CKxUhSz4b"
                 target="_blank"
                 aria-label="Visit our Facebook Page"
-                 rel="noopener noreferrer"
+                rel="noopener noreferrer"
               >
                 <svg
                   width="10"
@@ -961,7 +975,7 @@ export default async function SubCategoryPostPage({
                 href="https://x.com/Dinasuvadu"
                 target="_blank"
                 aria-label="Follow us on X (formerly Twitter)"
-                 rel="noopener noreferrer"
+                rel="noopener noreferrer"
               >
                 <svg
                   width="16"
@@ -990,7 +1004,7 @@ export default async function SubCategoryPostPage({
                 href="https://www.instagram.com/dinasuvadunews/"
                 target="_blank"
                 aria-label="Follow us on Instagram"
-                 rel="noopener noreferrer"
+                rel="noopener noreferrer"
               >
                 <svg
                   width="16"
@@ -1224,9 +1238,15 @@ export async function generateStaticParams() {
   } catch (error) {
     let errorMsg = "";
     if (typeof error === "object" && error !== null) {
-      if ("response" in error && typeof (error as any).response?.data !== "undefined") {
+      if (
+        "response" in error &&
+        typeof (error as any).response?.data !== "undefined"
+      ) {
         errorMsg = (error as any).response.data;
-      } else if ("message" in error && typeof (error as any).message === "string") {
+      } else if (
+        "message" in error &&
+        typeof (error as any).message === "string"
+      ) {
         errorMsg = (error as any).message;
       } else {
         errorMsg = JSON.stringify(error);
@@ -1234,10 +1254,7 @@ export async function generateStaticParams() {
     } else {
       errorMsg = String(error);
     }
-    console.error(
-      "Error generating static params:",
-      errorMsg
-    );
+    console.error("Error generating static params:", errorMsg);
     return [];
   }
 }

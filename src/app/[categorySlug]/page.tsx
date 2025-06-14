@@ -3,7 +3,7 @@ import Link from "next/link";
 // import { Space } from "antd";
 // import { ClockCircleOutlined } from "@ant-design/icons";
 // import Text from "antd/es/typography/Text";
-import 'antd/dist/reset.css';
+import "antd/dist/reset.css";
 import { notFound } from "next/navigation";
 import ShareButton from "../../components/ShareButton";
 
@@ -43,8 +43,6 @@ type Post = {
   }[];
 };
 
-
-
 // API base URL
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -63,11 +61,17 @@ async function fetchCategoryBySlug(slug: string): Promise<Category | null> {
     console.log(`Fetched category ${slug}:`, JSON.stringify(category, null, 2));
     return category;
   } catch (error) {
-    let errorMessage = '';
-    if (typeof error === 'object' && error !== null) {
-      if ('response' in error && typeof (error as any).response?.data !== 'undefined') {
+    let errorMessage = "";
+    if (typeof error === "object" && error !== null) {
+      if (
+        "response" in error &&
+        typeof (error as any).response?.data !== "undefined"
+      ) {
         errorMessage = (error as any).response.data;
-      } else if ('message' in error && typeof (error as any).message === 'string') {
+      } else if (
+        "message" in error &&
+        typeof (error as any).message === "string"
+      ) {
         errorMessage = (error as any).message;
       } else {
         errorMessage = JSON.stringify(error);
@@ -75,16 +79,17 @@ async function fetchCategoryBySlug(slug: string): Promise<Category | null> {
     } else {
       errorMessage = String(error);
     }
-    console.error(
-      `Error fetching category with slug ${slug}:`,
-      errorMessage
-    );
+    console.error(`Error fetching category with slug ${slug}:`, errorMessage);
     return null;
   }
 }
 
 // Fetch posts by category slug (using category ID) with pagination
-async function fetchPostsByCategory(categorySlug: string, page: number = 1, limit: number = 10): Promise<{ posts: Post[]; total: number }> {
+async function fetchPostsByCategory(
+  categorySlug: string,
+  page: number = 1,
+  limit: number = 10
+): Promise<{ posts: Post[]; total: number }> {
   try {
     console.log(`Fetching category ID for slug: ${categorySlug}`);
     const categoryResponse = await axios.get(
@@ -98,20 +103,30 @@ async function fetchPostsByCategory(categorySlug: string, page: number = 1, limi
     const categoryId = category.id;
     console.log(`Category ID for ${categorySlug}: ${categoryId}`);
 
-    console.log(`Fetching posts for category ID: ${categoryId}, page: ${page}, limit: ${limit}`);
+    console.log(
+      `Fetching posts for category ID: ${categoryId}, page: ${page}, limit: ${limit}`
+    );
     const response = await axios.get(
       `${apiUrl}/api/posts?where[categories][in]=${categoryId}&sort=-publishedAt&depth=2&limit=${limit}&page=${page}`
     );
     const posts = response.data.docs || [];
     const total = response.data.totalDocs || 0;
-    console.log(`Fetched ${posts.length} posts for category ${categorySlug} (ID: ${categoryId}), total: ${total}`);
+    console.log(
+      `Fetched ${posts.length} posts for category ${categorySlug} (ID: ${categoryId}), total: ${total}`
+    );
     return { posts, total };
   } catch (error) {
-    let errorMessage = '';
-    if (typeof error === 'object' && error !== null) {
-      if ('response' in error && typeof (error as any).response?.data !== 'undefined') {
+    let errorMessage = "";
+    if (typeof error === "object" && error !== null) {
+      if (
+        "response" in error &&
+        typeof (error as any).response?.data !== "undefined"
+      ) {
         errorMessage = (error as any).response.data;
-      } else if ('message' in error && typeof (error as any).message === 'string') {
+      } else if (
+        "message" in error &&
+        typeof (error as any).message === "string"
+      ) {
         errorMessage = (error as any).message;
       } else {
         errorMessage = JSON.stringify(error);
@@ -146,11 +161,14 @@ async function fetchCategoryById(
       title: category.title || "Uncategorized",
     };
   } catch (err) {
-    let errorMessage = '';
-    if (typeof err === 'object' && err !== null) {
-      if ('response' in err && typeof (err as any).response?.data !== 'undefined') {
+    let errorMessage = "";
+    if (typeof err === "object" && err !== null) {
+      if (
+        "response" in err &&
+        typeof (err as any).response?.data !== "undefined"
+      ) {
         errorMessage = (err as any).response.data;
-      } else if ('message' in err && typeof (err as any).message === 'string') {
+      } else if ("message" in err && typeof (err as any).message === "string") {
         errorMessage = (err as any).message;
       } else {
         errorMessage = JSON.stringify(err);
@@ -169,7 +187,7 @@ async function fetchCategoryById(
 // Helper function to get the image URL with proper base URL
 function getImageUrl(url: string | undefined): string | null {
   if (!url) return null;
-  return url.startsWith('http') ? url : `${apiUrl}${url}`;
+  return url.startsWith("http") ? url : `${apiUrl}${url}`;
 }
 
 export default async function CategoryPage({
@@ -208,11 +226,15 @@ export default async function CategoryPage({
     }
   }
 
-  const { posts, total } = await fetchPostsByCategory(categorySlug, page, limit);
+  const { posts, total } = await fetchPostsByCategory(
+    categorySlug,
+    page,
+    limit
+  );
   const totalPages = Math.ceil(total / limit);
 
   return (
-    <div className='site'>
+    <div className="site">
       {/* Breadcrumbs */}
       <nav
         aria-label="Breadcrumb"
@@ -225,16 +247,14 @@ export default async function CategoryPage({
           >
             Home
           </Link>
-          <span className="text-gray-400">{'>'}</span>
+          <span className="text-gray-400">{">"}</span>
           <span className="text-gray-700">{categoryTitle}</span>
         </div>
       </nav>
 
       {/* Category Header */}
       <header className="mb-10 site-main">
-        <h1 className="category-title">
-          {categoryTitle}
-        </h1>
+        <h1 className="category-title">{categoryTitle}</h1>
       </header>
 
       {/* Posts Grid */}
@@ -248,29 +268,30 @@ export default async function CategoryPage({
               return (
                 <article
                   key={post.id}
-                  
                   className="group block bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg transition-all duration-300"
                 >
-                  <Link href={`/${categorySlug}/${post.slug}`} className="flex flex-col h-full">
-                    <div className='post-item-category api-title bor-1'>
-                      <div className="flex-1 site-main">
-                        <h3 className="post-title-1">
-                          {post.title}
-                        </h3>
+                  <div className="post-item-category api-title bor-1">
+                    <div className="flex-1 site-main">
+                      <Link
+                        href={`/${categorySlug}/${post.slug}`}
+                        className="flex flex-col h-full"
+                      >
+                        <h3 className="post-title-1">{post.title}</h3>
                         {post.meta?.description && (
                           <p className="post-description">
                             {post.meta.description}
                           </p>
                         )}
-                        <div className="post-first-tag">
-                          {Array.isArray(post.tags) && post.tags.length > 0 && (
-                              <Link href={`/tags/${post.tags[0].slug}`}>
-                                <span className="text-blue-600 hover:underline">
-                                  {post.tags[0].name}
-                                </span>
-                              </Link>
-                            )}
-                          {/* <span style={{ marginTop: "4px" }}>
+                      </Link>
+                      <div className="post-first-tag">
+                        {Array.isArray(post.tags) && post.tags.length > 0 && (
+                          <Link href={`/tags/${post.tags[0].slug}`}>
+                            <span className="text-blue-600 hover:underline">
+                              {post.tags[0].name}
+                            </span>
+                          </Link>
+                        )}
+                        {/* <span style={{ marginTop: "4px" }}>
                             <Space size={4}>
                               <ClockCircleOutlined
                                 style={{ fontSize: "12px", color: "#8c8c8c" }}
@@ -283,29 +304,28 @@ export default async function CategoryPage({
                               </Text>
                             </Space>
                           </span> */}
-                          <ShareButton
-                            url={`http://localhost:3001/${categorySlug}/${post.slug}`}
-                            title={post.title}
-                            description={post.meta?.description}
-                          />
-                        </div>
+                        <ShareButton
+                          url={`http://localhost:3001/${categorySlug}/${post.slug}`}
+                          title={post.title}
+                          description={post.meta?.description}
+                        />
                       </div>
-                      {/* Image */}
-                      {imageUrl ? (
-                        <div className="relative w-full h-48 overflow-hidden rounded-t-lg site-main">
-                          <img
-                            src={imageUrl}
-                            alt={imageAlt}
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-full h-48 bg-gray-100 rounded-t-lg flex items-center justify-center">
-                          <span className="text-gray-400 text-sm">No Image</span>
-                        </div>
-                      )}
                     </div>
-                  </Link>
+                    {/* Image */}
+                    {imageUrl ? (
+                      <div className="relative w-full h-48 overflow-hidden rounded-t-lg site-main">
+                        <img
+                          src={imageUrl}
+                          alt={imageAlt}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-full h-48 bg-gray-100 rounded-t-lg flex items-center justify-center">
+                        <span className="text-gray-400 text-sm">No Image</span>
+                      </div>
+                    )}
+                  </div>
                 </article>
               );
             })}
@@ -326,7 +346,7 @@ export default async function CategoryPage({
               {/* First Page */}
               <Link
                 href={`/${categorySlug}?page=1`}
-                className={`pagination-link ${page === 1 ? 'active' : ''}`}
+                className={`pagination-link ${page === 1 ? "active" : ""}`}
               >
                 1
               </Link>
@@ -345,13 +365,17 @@ export default async function CategoryPage({
               )}
 
               {/* Ellipsis before last page if current page is less than totalPages - 1 */}
-              {page < totalPages - 1 && <span className="pagination-ellipsis">…</span>}
+              {page < totalPages - 1 && (
+                <span className="pagination-ellipsis">…</span>
+              )}
 
               {/* Last Page (only if totalPages > 1) */}
               {totalPages > 1 && (
                 <Link
                   href={`/${categorySlug}?page=${totalPages}`}
-                  className={`pagination-link ${page === totalPages ? 'active' : ''}`}
+                  className={`pagination-link ${
+                    page === totalPages ? "active" : ""
+                  }`}
                 >
                   {totalPages}
                 </Link>
@@ -369,7 +393,9 @@ export default async function CategoryPage({
           )}
         </>
       ) : (
-        <p className="text-gray-600 text-center">No posts available in this category.</p>
+        <p className="text-gray-600 text-center">
+          No posts available in this category.
+        </p>
       )}
     </div>
   );
@@ -396,11 +422,17 @@ export async function generateStaticParams() {
     console.log(`Total static params generated: ${params.length}`);
     return params;
   } catch (error) {
-    let errorMessage = '';
-    if (typeof error === 'object' && error !== null) {
-      if ('response' in error && typeof (error as any).response?.data !== 'undefined') {
+    let errorMessage = "";
+    if (typeof error === "object" && error !== null) {
+      if (
+        "response" in error &&
+        typeof (error as any).response?.data !== "undefined"
+      ) {
         errorMessage = (error as any).response.data;
-      } else if ('message' in error && typeof (error as any).message === 'string') {
+      } else if (
+        "message" in error &&
+        typeof (error as any).message === "string"
+      ) {
         errorMessage = (error as any).message;
       } else {
         errorMessage = JSON.stringify(error);
