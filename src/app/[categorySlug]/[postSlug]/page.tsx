@@ -411,13 +411,14 @@ export default async function PostOrSubCategoryPage({
                       </div>
 
                       {imageUrl ? (
-                        <div className="relative w-full h-48 overflow-hidden rounded-t-lg site-main">
+                       <Link
+                          href={`/${categorySlug}/${postSlug}/${post.slug}`} className="relative w-full h-48 overflow-hidden rounded-t-lg site-main">
                           <img
                             src={imageUrl}
                             alt={imageAlt}
                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                           />
-                        </div>
+                        </Link>
                       ) : (
                         <div className="w-full h-48 bg-gray-100 rounded-t-lg flex items-center justify-center">
                           <span className="text-gray-400 text-sm">

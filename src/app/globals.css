@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Mukta+Malar:wght@200;300;400;500;600;700;800&family=Orbitron:wght@400..900&family=Titillium+Web:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Mukta+Malar:wght@200;300;400;500;600;700;800&display=swap");
 
 :root {
   --background: #ffffff;
@@ -17,21 +17,23 @@ body {
   max-width: 100vw;
   overflow-x: hidden;
 }
+
 p {
   margin-bottom: 0px !important;
 }
+
 ul,
 ol {
   margin: 0 0 1.5em 3em;
 }
+
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: "Mukta Malar", sans-serif;
+  font-family: "Mukta Malar";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #000000;
-  font-family: "Mukta Malar", "san-serif";
   font-size: 1rem;
   line-height: 1.5;
 }
@@ -46,44 +48,49 @@ a {
   color: inherit;
   text-decoration: none;
 }
-/* article{
-  padding-inline: 40px;
-  padding-block: 20px;
-} */
-/* styles/global.css */
+
 .site {
   max-width: 1000px;
   margin: auto;
 }
+
 .ant-pagination-item a {
   color: #2563eb;
 }
+
 .ant-pagination-item-active a {
   color: white;
   background-color: #2563eb;
   border-color: #2563eb;
 }
+
 .ant-pagination-prev .ant-pagination-item-link,
 .ant-pagination-next .ant-pagination-item-link {
   color: #2563eb;
 }
+
 .ant-pagination-prev:hover .ant-pagination-item-link,
 .ant-pagination-next:hover .ant-pagination-item-link {
   color: #1e40af;
 }
+
 .para-txt {
-  font-family: "Mukta Malar", sans-serif !important;
+  font-family: "Mukta Malar" !important;
 }
+
 img {
   width: 100%;
   height: auto;
 }
+
 img {
   max-width: 100%;
 }
+
 .fl-dir {
   flex-direction: column;
 }
+
 .col-md-3 {
   display: grid;
   background-color: #fcfcfc;
@@ -91,24 +98,28 @@ img {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   flex: 0 0 31.8%;
 }
+
 .news-post {
   display: grid;
   grid-template-columns: 1fr 2fr;
   gap: 15px;
   padding: 8px;
-  border-bottom: 1px solid #ccc !important; /* Ensure border applies */
+  border-bottom: 1px solid #ccc !important;
 }
+
 .home-category {
   font-weight: 700;
   color: #194277;
   font-size: 14px;
 }
+
 .news-post img {
   border-radius: 6px;
   width: 100%;
   height: -webkit-fill-available;
   object-fit: cover;
 }
+
 .breadcrumbs {
   gap: 10px;
   display: flex;
@@ -116,33 +127,38 @@ img {
   border-radius: 5px;
   margin-top: 10px;
 }
+
 .breadcrumbs span {
   color: #444444;
   font-weight: 500;
   font-size: 13px;
   text-decoration: none;
-  font-family: "Mukta Malar", "san-serif";
+  font-family: "Mukta Malar";
 }
 
 .breadcrumbs a:hover {
   text-decoration: underline;
 }
+
 .post-grid {
   display: grid;
   grid-template-columns: 68% 28%;
   gap: 40px;
 }
+
 .post-meta-social {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
+
 .entry-meta {
   padding: 10px 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
+
 .social-media-icon span {
   background: #5d5d5d;
   border-radius: 100px;
@@ -152,6 +168,7 @@ img {
   align-items: center;
   justify-content: center;
 }
+
 .web-stories-pagination {
   display: flex;
   justify-content: center;
@@ -190,33 +207,43 @@ img {
   font-size: 14px;
   padding: 4px 8px;
 }
+
 .container {
   padding: 16px !important;
 }
+
 .fl-wrap-mob {
   flex-wrap: wrap;
 }
+
 .gap-20 {
   gap: 20px !important;
 }
+
 .al-cn {
   align-items: center !important;
 }
+
 .js-cn {
   justify-content: center;
 }
+
 .d-flex {
   display: flex;
 }
+
 .c-w {
   color: #ffffff;
 }
+
 .js-sb {
   justify-content: space-between;
 }
+
 .gap {
   gap: 10px;
 }
+
 .post-meta-social .social-media-icon span {
   border: 1px solid #808080;
   background-color: transparent;
@@ -237,6 +264,7 @@ img {
   padding-bottom: 10px;
   flex-direction: column;
 }
+
 .post-svg a {
   text-decoration: none;
   display: flex;
@@ -263,11 +291,13 @@ img {
   margin: 0;
   padding: 0;
 }
+
 .social-icons {
   display: flex;
   align-items: center;
   gap: 10px;
 }
+
 .post-svg p {
   color: #656565;
   text-decoration: none;
@@ -276,12 +306,12 @@ img {
   border-radius: 20px;
   display: flex;
   align-items: center;
-
   width: fit-content;
   gap: 10px;
   border: none;
   margin: 15px 0;
 }
+
 .whatsapp {
   border: 1px solid #25d366 !important;
   color: #25d366 !important;
@@ -311,11 +341,13 @@ img {
   border: 1px solid #bc2a8d;
   color: #bc2a8d !important;
 }
+
 .tags {
   display: flex;
   align-items: center;
   gap: 10px;
 }
+
 .post-tags a {
   margin-top: 10px;
   text-decoration: none;
@@ -326,6 +358,7 @@ img {
   font-size: 12px;
   font-weight: 500;
 }
+
 .category-grid {
   display: flex;
   flex-direction: column;
@@ -334,57 +367,66 @@ img {
   padding: 0;
   box-shadow: unset;
 }
+
 .post-item-category {
   display: grid;
-  /* padding-bottom: 20px; */
   gap: 20px;
   grid-template-columns: 62% 35%;
-  /* border-bottom: 1px solid rgb(232 233 234); */
   row-gap: 10px;
 }
+
 .bor-1 {
   border-bottom: 1px solid rgb(232 233 234);
   padding-bottom: 20px;
 }
+
 .post-item-category img {
   width: 300px;
   height: auto;
   object-fit: cover;
   border-radius: 8px;
 }
+
 .post-first-tag {
   margin-top: 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
+
 .post-first-tag a {
   font-weight: 700;
   color: #194277;
   font-size: 14px;
 }
+
 .post-svg h2 {
   font-size: 18px;
 }
+
 .late-grid {
   display: grid;
   grid-template-columns: 1.5fr 1fr;
   gap: 20px;
   margin-top: 10px !important;
 }
+
 .content-area .col-md-3 {
   display: grid;
   grid-template-rows: 100px 100px 100px;
 }
+
 a:hover {
   color: #000000;
 }
+
 .col-01 {
   height: fit-content;
   background-color: #fcfcfc;
   border-radius: 10px;
   box-shadow: rgba(0, 0, 0, 0.1) 0px 3px 3px;
 }
+
 .grid-item-1 {
   gap: 23px;
   padding: 10px;
@@ -394,12 +436,14 @@ a:hover {
   border-color: #ccc;
   row-gap: 0;
 }
+
 .col-01 img {
   width: auto;
   height: 80px;
   object-fit: cover;
   border-radius: 10px;
 }
+
 .category-title {
   font-size: 20px !important;
   font-weight: bold;
@@ -408,8 +452,9 @@ a:hover {
   display: inline-block;
   margin: 12px 0;
   width: 100%;
-  font-family: "Mukta Malar", "san-serif";
+  font-family: "Mukta Malar";
 }
+
 .row-03 {
   display: grid;
   scrollbar-width: none;
@@ -417,33 +462,39 @@ a:hover {
   padding-bottom: 5px;
   grid-template-columns: 32% 31% 32%;
 }
+
 .latest-posts-grid {
   display: none;
 }
+
 .breadcrumbs a {
   color: #444444;
   font-weight: 500;
   font-size: 13px;
   text-decoration: none;
-  font-family: "Mukta Malar", "san-serif";
+  font-family: "Mukta Malar";
 }
+
 .single-post-title {
   font-size: clamp(21px, 2vw, 22px);
-  font-family: "Mukta Malar", "san-serif";
+  font-family: "Mukta Malar";
   font-weight: 700;
 }
+
 .post-summary-box {
   margin-top: 10px;
-  font-family: "Mukta Malar", "san-serif";
+  font-family: "Mukta Malar";
   color: #28313a;
   font-size: clamp(14px, 2vw, 16px);
   font-weight: 500;
 }
+
 .latest-post-rt {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 10px;
 }
+
 .main-header {
   position: sticky;
   top: 0;
@@ -453,7 +504,7 @@ a:hover {
 
 .header-two {
   padding-block: 30px;
-  max-width: 1000px; /* Center the nav */
+  max-width: 1000px;
   margin: 0 auto;
   border-bottom: 1px solid #ebebeb;
 }
@@ -464,12 +515,12 @@ a:hover {
   left: 0;
   right: 0;
   background-color: #fff;
-  z-index: 1000; /* Ensure it's above other elements */
+  z-index: 1000;
   border-bottom: 2px solid #e8e8e8;
-  max-width: 1000px; /* Keep the centered layout */
-  margin: 0 auto; /* Center the fixed element */
-  width: 100%; /* Ensure it takes the full width of the viewport */
-  box-sizing: border-box; /* Prevent padding issues */
+  max-width: 1000px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .header-one {
@@ -513,7 +564,7 @@ a:hover {
 .drawer-menu li a {
   font-weight: bold;
   font-size: 14px;
-  font-family: "Mukta Malar", sans-serif;
+  font-family: "Mukta Malar";
   color: black;
   text-decoration: none;
   white-space: nowrap;
@@ -528,7 +579,7 @@ a:hover {
 }
 
 .drawer-menu li.active {
-  position: relative; /* Ensure the underline-bar is positioned relative to the li */
+  position: relative;
 }
 
 .underline-bar {
@@ -594,7 +645,6 @@ a:hover {
   height: 24px;
 }
 
-/* Mobile Drawer Styles */
 .mobile-drawer {
   position: fixed;
   top: 0;
@@ -668,7 +718,7 @@ a:hover {
   text-decoration: none;
   font-weight: 600;
   color: #000000;
-  font-family: "Mukta Malar", sans-serif;
+  font-family: "Mukta Malar";
   font-size: 14px;
 }
 
@@ -684,6 +734,7 @@ a:hover {
   left: -40px;
   position: relative;
 }
+
 .social-med-icons span {
   border-radius: 5px;
   width: 30px;
@@ -693,38 +744,45 @@ a:hover {
   justify-content: center;
   gap: 10px;
 }
+
 .post-title-1 {
   color: #000 !important;
   font-size: 18px;
   font-weight: 600;
-  font-family: "mukta malar", sans-serif;
+  font-family: "Mukta Malar";
 }
+
 .post-description {
   color: #6d787a !important;
   font-weight: 500;
-  font-family: "Mukta Malar", "san-serif";
+  font-family: "Mukta Malar";
   font-size: clamp(12px, 2vw, 14px);
 }
+
 .post-desc {
-  font-family: "Mukta Malar", "san-serif";
+  font-family: "Mukta Malar";
   color: #28313a;
   font-size: clamp(16px, 2vw, 18px);
   margin-block: 1em;
   margin-bottom: 2em !important;
 }
+
 .site-footer {
   background-color: #333333;
   padding: 0 30px;
   margin-top: auto;
 }
+
 .brand-logo {
   width: 150px;
   height: auto;
 }
+
 .social-media-icon span svg {
   width: 15px;
   height: 15px;
 }
+
 .footer-content {
   margin-inline: auto;
   max-width: 1600px;
@@ -753,7 +811,7 @@ a:hover {
   font-weight: 500;
   color: #ebebeb;
   text-decoration: none;
-  font-family: "Mukta Malar", sans-serif;
+  font-family: "Mukta Malar";
   white-space: nowrap;
   text-transform: uppercase;
 }
@@ -766,9 +824,10 @@ a:hover {
   text-align: center;
   font-size: 16px;
   color: #ebebeb;
-  font-family: "Mukta Malar", sans-serif;
+  font-family: "Mukta Malar";
   margin-top: 20px;
 }
+
 .fl-wrap-mob-1 {
   flex-wrap: wrap;
 }
@@ -776,17 +835,20 @@ a:hover {
 .entry-content {
   margin: 1.5em 0 0;
 }
+
 .entry-content p {
-  font-family: "Mukta Malar", "san-serif";
+  font-family: "Mukta Malar";
   color: #28313a;
   font-size: clamp(16px, 2vw, 18px);
   margin-bottom: 2em !important;
 }
+
 @media (max-width: 1024px) {
   .site {
     padding: 0 30px;
   }
 }
+
 @media (max-width: 900px) {
   .footer-bottom {
     font-size: 14px;
@@ -799,19 +861,17 @@ a:hover {
     display: none;
   }
   .header-two {
-    overflow-x: scroll; /* Add the ability to scroll */
+    overflow-x: scroll;
   }
-  /* Hide scrollbar for Chrome, Safari and Opera */
   .header-two::-webkit-scrollbar {
     display: none;
   }
-
-  /* Hide scrollbar for IE, Edge and Firefox */
   .header-two {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
+
 @media (max-width: 768px) {
   .post-grid {
     display: flex;
@@ -828,6 +888,7 @@ a:hover {
     display: none;
   }
 }
+
 @media (max-width: 600px) {
   .close-btn {
     right: 50px;
@@ -895,7 +956,7 @@ a:hover {
   }
   .latest-post-title {
     font-size: 20px;
-    font-family: "mukta malar", sans-serif;
+    font-family: "Mukta Malar";
     font-weight: 600;
     line-height: 1.5;
     padding: 10px 0 0;
@@ -935,6 +996,7 @@ a:hover {
     color-scheme: dark;
   }
 }
+
 @media (min-width: 900px) {
   .brand-logo {
     width: 200px;
@@ -943,6 +1005,7 @@ a:hover {
     padding-inline: 0;
   }
 }
+
 @media (min-width: 600px) {
   .pad-in-30 {
     padding-inline: 20px;

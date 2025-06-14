@@ -302,14 +302,15 @@ export default async function SearchPage({
                         </div>
                       </div>
                       {imageUrl ? (
-                        <div className="relative w-full md:w-48 h-48 overflow-hidden rounded-t-lg site-main">
+                        <Link
+                          href={postUrl} className="relative w-full md:w-48 h-48 overflow-hidden rounded-t-lg site-main">
                           <img
                             src={imageUrl}
                             alt={imageAlt}
                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                             style={{ borderRadius: "10px" }}
                           />
-                        </div>
+                        </Link>
                       ) : (
                         <div className="w-full md:w-48 h-48 bg-gray-100 rounded-t-lg flex items-center justify-center">
                           <span className="text-gray-400 text-sm">
