@@ -1,3 +1,4 @@
+export const revalidate = 60; // Revalidate every 60 seconds
 import axios from "axios";
 import Link from "next/link";
 // import { Space } from "antd";
@@ -1405,41 +1406,77 @@ export default async function PostOrSubCategoryPage({
 export async function generateStaticParams() {
   console.log("Entering generateStaticParams for [categorySlug]/[postSlug]");
 
+  const params: { categorySlug: string; postSlug: string }[] = [];
+
   try {
-    const res = await axios.get(`${apiUrl}/api/posts?limit=1000&depth=2`);
-    const data = await res.data;
-    console.log(`Fetched ${data.docs.length} posts for static generation`);
+    // Fetch all posts
+    const postRes = await axios.get(`${apiUrl}/api/posts?limit=1000&depth=3`);
+    const posts: Post[] = postRes.data.docs || [];
+    console.log(`Fetched ${posts.length} posts for static generation`);
 
-    const params = [];
-    for (const post of data.docs) {
-      const category = post.categories?.[0];
-      if (category && !category.parent) {
-        const categorySlug = category.slug || "uncategorized";
-        params.push({
-          categorySlug,
-          postSlug: post.slug,
-        });
-        console.log(`Generated path for post: ${categorySlug}/${post.slug}`);
+    // Generate paths for posts
+    for (const post of posts) {
+      if (!post.slug) {
+        console.warn(`Skipping post with missing slug: ${post.id}`);
+        continue;
       }
-    }
 
-    const categoryRes = await axios.get(
-      `${apiUrl}/api/categories?limit=1000&depth=2`
-    );
-    const categories = categoryRes.data.docs || [];
-    for (const category of categories) {
+      const category = post.categories?.[0];
+      if (!category) {
+        console.warn(`Skipping post ${post.slug} with no categories`);
+        continue;
+      }
+
+      let categorySlug = category.slug || "uncategorized";
       if (category.parent) {
         const parent =
           typeof category.parent === "string"
             ? await fetchParentCategory(category.parent)
             : category.parent;
-        if (parent) {
+        if (!parent || !parent.slug) {
+          console.warn(
+            `Skipping post ${post.slug} due to missing parent category`
+          );
+          continue;
+        }
+        categorySlug = parent.slug;
+      }
+
+      params.push({
+        categorySlug,
+        postSlug: post.slug,
+      });
+      console.log(`Generated path: ${categorySlug}/${post.slug}`);
+    }
+
+    // Fetch all categories
+    const categoryRes = await axios.get(
+      `${apiUrl}/api/categories?limit=1000&depth=2`
+    );
+    const categories: Category[] = categoryRes.data.docs || [];
+    console.log(`Fetched ${categories.length} categories`);
+
+    // Generate paths for subcategories
+    for (const category of categories) {
+      if (!category.slug) {
+        console.warn(`Skipping category with missing slug: ${category.id}`);
+        continue;
+      }
+
+      if (category.parent) {
+        const parent =
+          typeof category.parent === "string"
+            ? await fetchParentCategory(category.parent)
+            : category.parent;
+        if (parent && parent.slug) {
           params.push({
             categorySlug: parent.slug,
             postSlug: category.slug,
           });
-          console.log(
-            `Generated path for subcategory: ${parent.slug}/${category.slug}`
+          console.log(`Generated subcategory path: ${parent.slug}/${category.slug}`);
+        } else {
+          console.warn(
+            `Skipping subcategory ${category.slug} due to missing parent`
           );
         }
       }

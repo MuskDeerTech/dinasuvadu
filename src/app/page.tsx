@@ -1,3 +1,4 @@
+export const revalidate = 10; // Revalidate every 60 seconds
 import axios from "axios";
 import Link from "next/link";
 import { Row, Col, Card, Space } from "antd";
