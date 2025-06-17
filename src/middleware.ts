@@ -27,6 +27,14 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(`/${categorySlug}/${postSlug}/feed`, url));
   }
 
+  // Redirect /tags/[tagSlug]/rss and /tags/[tagSlug]/rss.xml to /tags/[tagSlug]/feed
+  const tagRssMatch = pathname.match(/^\/tags\/([^/]+)\/(rss|rss\.xml)$/);
+  if (tagRssMatch) {
+    const tagSlug = tagRssMatch[1];
+    console.log(`Redirecting ${pathname} to /tags/${tagSlug}/feed`);
+    return NextResponse.redirect(new URL(`/tags/${tagSlug}/feed`, url));
+  }
+
   // Existing sitemap rewrite logic
   if (pathname.startsWith('/post-sitemap') && pathname.endsWith('.xml')) {
     const pageMatch = pathname.match(/post-sitemap(\d+)\.xml/);
@@ -47,7 +55,8 @@ export const config = {
     '/post-sitemap:page.xml',
     '/rss',
     '/rss.xml',
-    '/:categorySlug/(rss|rss.xml)', // Added for top-level category RSS
+    '/:categorySlug/(rss|rss.xml)',
     '/:categorySlug/:postSlug/(rss|rss.xml)',
+    '/tags/:tagSlug/(rss|rss.xml)', // Added for tag RSS feeds
   ],
 };

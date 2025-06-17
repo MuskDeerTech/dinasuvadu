@@ -1,5 +1,117 @@
 export const dynamic = 'force-dynamic'; // Ensures the route is dynamic and not cached indefinitely
 
+// Cache to store category data and avoid repeated API calls
+const categoryCache = new Map<string, any>();
+
+// Utility function to fetch category details by slug with caching
+async function fetchCategoryBySlug(slug: string): Promise<{ id: string; slug: string; parent?: string | { id: string; slug: string } } | null> {
+  if (categoryCache.has(slug)) {
+    return categoryCache.get(slug);
+  }
+
+  try {
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/categories?where[slug][equals]=${slug}&depth=2`;
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      console.error(`Failed to fetch category ${slug}: ${response.status} ${response.statusText}`);
+      return null;
+    }
+
+    const data = await response.json();
+    const category = data.docs?.[0];
+    if (!category) {
+      console.warn(`No category found for slug: ${slug}`);
+      return null;
+    }
+
+    console.log(`Fetched category ${slug}:`, JSON.stringify(category, null, 2));
+    const result = {
+      id: category.id,
+      slug: category.slug || slug,
+      parent: category.parent || null,
+    };
+
+    categoryCache.set(slug, result);
+    return result;
+  } catch (error) {
+    console.error(`Error fetching category ${slug}:`, error);
+    return null;
+  }
+}
+
+// Utility function to fetch parent category details by ID
+async function fetchParentCategory(parentId: string): Promise<{ slug: string } | null> {
+  if (categoryCache.has(parentId)) {
+    const cachedCategory = categoryCache.get(parentId);
+    return {
+      slug: cachedCategory.slug,
+    };
+  }
+
+  try {
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/categories/${parentId}?depth=1`;
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      console.error(`Failed to fetch parent category ${parentId}: ${response.status} ${response.statusText}`);
+      return null;
+    }
+
+    const parentCategory = await response.json();
+    console.log(`Fetched parent category ${parentId}:`, JSON.stringify(parentCategory, null, 2));
+
+    const result = {
+      slug: parentCategory.slug || 'uncategorized',
+    };
+
+    categoryCache.set(parentId, { slug: result.slug });
+    return result;
+  } catch (error) {
+    console.error(`Error fetching parent category ${parentId}:`, error);
+    return null;
+  }
+}
+
+// Utility function to construct the post URL based on its category
+async function getPostUrl(post: any, baseUrl: string): Promise<string> {
+  const category = post.categories?.[0];
+  if (!category) {
+    console.warn(`Post ${post.slug} has no category, using default 'uncategorized'`);
+    return `${baseUrl}/uncategorized/${post.slug}`;
+  }
+
+  const categoryDetails = await fetchCategoryBySlug(category.slug);
+  if (!categoryDetails) {
+    console.warn(`Category not found for post ${post.slug}, using default 'uncategorized'`);
+    return `${baseUrl}/uncategorized/${post.slug}`;
+  }
+
+  if (categoryDetails.parent) {
+    const parentId = typeof categoryDetails.parent === 'string' ? categoryDetails.parent : categoryDetails.parent.id;
+    const parentCategory = await fetchParentCategory(parentId);
+    if (!parentCategory) {
+      console.warn(`Parent category not found for category ${categoryDetails.slug}, treating as top-level`);
+      return `${baseUrl}/${categoryDetails.slug}/${post.slug}`;
+    }
+    return `${baseUrl}/${parentCategory.slug}/${categoryDetails.slug}/${post.slug}`;
+  }
+
+  return `${baseUrl}/${categoryDetails.slug}/${post.slug}`;
+}
+
 export async function GET(request: Request) {
   console.log('Request URL:', request.url);
 
@@ -39,7 +151,7 @@ export async function GET(request: Request) {
 
   try {
     while (true) {
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/posts?limit=${limit}&page=${currentPage}&where[_status][equals]=published&depth=0`;
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/posts?limit=${limit}&page=${currentPage}&where[_status][equals]=published&depth=2`;
       console.log('Fetching posts batch from:', apiUrl);
       const response = await fetch(apiUrl);
       if (!response.ok) {
@@ -74,7 +186,8 @@ export async function GET(request: Request) {
     updatedAt: post.updatedAt,
     publishedDate: post.publishedDate,
     updatedDate: post.updatedDate,
-    _status: post._status
+    _status: post._status,
+    categories: post.categories?.map((cat: any) => ({ id: cat.id, slug: cat.slug })),
   })));
 
   // Filter posts to ensure only published ones with a slug are included
@@ -86,7 +199,8 @@ export async function GET(request: Request) {
     slug: post.slug,
     publishedAt: post.publishedAt,
     updatedAt: post.updatedAt,
-    _status: post._status
+    _status: post._status,
+    categories: post.categories?.map((cat: any) => ({ id: cat.id, slug: cat.slug })),
   })));
 
   // Sort posts by publishedAt in descending order (newest first), with a fallback to updatedAt or current date
@@ -101,7 +215,8 @@ export async function GET(request: Request) {
     slug: post.slug,
     publishedAt: post.publishedAt,
     updatedAt: post.updatedAt,
-    _status: post._status
+    _status: post._status,
+    categories: post.categories?.map((cat: any) => ({ id: cat.id, slug: cat.slug })),
   })));
 
   // Apply pagination manually
@@ -115,7 +230,8 @@ export async function GET(request: Request) {
     slug: post.slug,
     publishedAt: post.publishedAt,
     updatedAt: post.updatedAt,
-    _status: post._status
+    _status: post._status,
+    categories: post.categories?.map((cat: any) => ({ id: cat.id, slug: cat.slug })),
   })));
 
   // If no posts are found for this page, return a 404
@@ -124,11 +240,16 @@ export async function GET(request: Request) {
     return new Response('No posts found for this page', { status: 404 });
   }
 
-  // Map posts to sitemap entries
-  const postPages = postsForPage.map((post: any) => ({
-    loc: `${baseUrl}/posts/${post.slug}`,
-    lastmod: post.updatedAt || post.publishedAt || new Date().toISOString(),
-  }));
+  // Map posts to sitemap entries with corrected <loc> links
+  const postPages = await Promise.all(
+    postsForPage.map(async (post: any) => {
+      const postUrl = await getPostUrl(post, baseUrl);
+      return {
+        loc: postUrl,
+        lastmod: post.updatedAt || post.publishedAt || new Date().toISOString(),
+      };
+    })
+  );
   console.log('Post pages:', postPages);
 
   // Generate sitemap XML
