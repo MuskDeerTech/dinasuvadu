@@ -1,8 +1,10 @@
 import axios from "axios";
 import Link from "next/link";
 import { Row, Col, Card, Space } from "antd";
-// import { ClockCircleOutlined } from '@ant-design/icons';
 import Text from "antd/es/typography/Text";
+
+// Force dynamic rendering to ensure fresh data on every request
+export const dynamic = 'force-dynamic';
 
 // Type definitions
 type Category = {
@@ -41,24 +43,19 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 // Fetch categories
 async function fetchCategories(): Promise<Category[]> {
   try {
-    const res = await axios.get(`${apiUrl}/api/categories?depth=2`);
+    const res = await axios.get(`${apiUrl}/api/categories?depth=2`, {
+      headers: {
+        'Cache-Control': 'no-cache',
+      },
+    });
     const categories = res.data.docs || [];
     console.log("Fetched categories:", categories);
     return categories;
   } catch (err) {
-    if (
-      typeof err === "object" &&
-      err !== null &&
-      "response" in err &&
-      typeof (err as any).response === "object"
-    ) {
-      console.error(
-        "Error fetching categories:",
-        (err as any).response?.data || (err as any).message
-      );
-    } else {
-      console.error("Error fetching categories:", (err as any)?.message || err);
-    }
+    console.error(
+      "Error fetching categories:",
+      (err as any).response?.data || (err as any).message
+    );
     return [];
   }
 }
@@ -67,28 +64,21 @@ async function fetchCategories(): Promise<Category[]> {
 async function fetchLatestPosts(): Promise<Post[]> {
   try {
     const res = await axios.get(
-      `${apiUrl}/api/posts?limit=34&depth=2&sort=-publishedAt`
+      `${apiUrl}/api/posts?limit=100&depth=2&sort=-publishedAt`,
+      {
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      }
     );
     const posts = res.data.docs || [];
     console.log("Fetched latest posts:", JSON.stringify(posts, null, 2));
     return posts;
   } catch (err) {
-    if (
-      typeof err === "object" &&
-      err !== null &&
-      "response" in err &&
-      typeof (err as any).response === "object"
-    ) {
-      console.error(
-        "Error fetching latest posts:",
-        (err as any).response?.data || (err as any).message
-      );
-    } else {
-      console.error(
-        "Error fetching latest posts:",
-        (err as any)?.message || err
-      );
-    }
+    console.error(
+      "Error fetching latest posts:",
+      (err as any).response?.data || (err as any).message
+    );
     return [];
   }
 }
@@ -97,7 +87,12 @@ async function fetchLatestPosts(): Promise<Post[]> {
 async function fetchPostsByCategory(categoryId: string): Promise<Post[]> {
   try {
     const res = await axios.get(
-      `${apiUrl}/api/posts?limit=7&depth=2&where[categories][contains]=${categoryId}`
+      `${apiUrl}/api/posts?limit=7&depth=2&where[categories][contains]=${categoryId}`,
+      {
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      }
     );
     console.log(
       `Fetched ${res.data.docs.length} posts for category ID ${categoryId}:`,
@@ -105,22 +100,10 @@ async function fetchPostsByCategory(categoryId: string): Promise<Post[]> {
     );
     return res.data.docs || [];
   } catch (err) {
-    if (
-      typeof err === "object" &&
-      err !== null &&
-      "response" in err &&
-      typeof (err as any).response === "object"
-    ) {
-      console.error(
-        `Error fetching posts for category ID ${categoryId}:`,
-        (err as any).response?.data || (err as any).message
-      );
-    } else {
-      console.error(
-        `Error fetching posts for category ID ${categoryId}:`,
-        (err as any)?.message || err
-      );
-    }
+    console.error(
+      `Error fetching posts for category ID ${categoryId}:`,
+      (err as any).response?.data || (err as any).message
+    );
     return [];
   }
 }
@@ -130,7 +113,11 @@ async function fetchParentCategory(
   parentId: string
 ): Promise<{ slug: string; title: string } | null> {
   try {
-    const res = await axios.get(`${apiUrl}/api/categories/${parentId}?depth=1`);
+    const res = await axios.get(`${apiUrl}/api/categories/${parentId}?depth=1`, {
+      headers: {
+        'Cache-Control': 'no-cache',
+      },
+    });
     const parentCategory = res.data || null;
     if (!parentCategory) {
       console.log(`No parent category found for ID: ${parentId}`);
@@ -142,22 +129,10 @@ async function fetchParentCategory(
       title: parentCategory.title || "Uncategorized",
     };
   } catch (err) {
-    if (
-      typeof err === "object" &&
-      err !== null &&
-      "response" in err &&
-      typeof (err as any).response === "object"
-    ) {
-      console.error(
-        `Error fetching parent category with ID ${parentId}:`,
-        (err as any).response?.data || (err as any).message
-      );
-    } else {
-      console.error(
-        `Error fetching parent category with ID ${parentId}:`,
-        (err as any)?.message || err
-      );
-    }
+    console.error(
+      `Error fetching parent category with ID ${parentId}:`,
+      (err as any).response?.data || (err as any).message
+    );
     return null;
   }
 }
@@ -209,8 +184,11 @@ export default async function Home() {
 
   const featuredPost = latestPosts.length > 0 ? latestPosts[0] : null;
   const smallerPosts = latestPosts.length > 1 ? latestPosts.slice(1, 4) : [];
-  const additionalPosts =
-    latestPosts.length > 4 ? latestPosts.slice(4, 34) : [];
+  const additionalPosts = latestPosts.length > 4 ? latestPosts.slice(4) : [];
+
+  console.log("Featured post:", featuredPost?.title);
+  console.log("Smaller posts:", smallerPosts.map(p => p.title));
+  console.log("Additional posts:", additionalPosts.map(p => p.title));
 
   const categoryOrder: { [key: string]: number } = {
     தமிழ்நாடு: 0,
@@ -257,7 +235,7 @@ export default async function Home() {
                       position: "relative",
                       overflow: "hidden",
                     }}
-                    styles={{ body: { padding: 0 } }} // Replace bodyStyle with styles.body
+                    styles={{ body: { padding: 0 } }}
                   >
                     <div style={{ position: "relative" }}>
                       {(() => {
@@ -474,7 +452,6 @@ export default async function Home() {
                       style={{ padding: "0 20px" }}
                     >
                       <div className="post-first-tag">
-                        {/* Define categoryLink for additionalPosts section */}
                         {(() => {
                           let categoryLink = "/uncategorized";
                           let categoryTitle = "Uncategorized";
@@ -498,15 +475,6 @@ export default async function Home() {
                             </Link>
                           );
                         })()}
-
-                        {/* <span style={{ marginTop: "4px", marginLeft: ((post.tags ?? []).length > 0 ? "8px" : "0") }}>
-                    <Space size={4}>
-                      <ClockCircleOutlined style={{ fontSize: "12px", color: "#8c8c8c" }} />
-                      <Text type="secondary" style={{ fontSize: "12px" }}>
-                        5 Min Read
-                      </Text>
-                    </Space>
-                  </span> */}
                         <span
                           className="shareButton"
                           data-url=""
