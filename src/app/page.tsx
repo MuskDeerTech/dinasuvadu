@@ -1,10 +1,8 @@
 import axios from "axios";
 import Link from "next/link";
 import { Row, Col, Card, Space } from "antd";
+// import { ClockCircleOutlined } from '@ant-design/icons';
 import Text from "antd/es/typography/Text";
-
-// Force dynamic rendering to ensure fresh data on every request
-export const dynamic = 'force-dynamic';
 
 // Type definitions
 type Category = {
@@ -43,19 +41,24 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 // Fetch categories
 async function fetchCategories(): Promise<Category[]> {
   try {
-    const res = await axios.get(`${apiUrl}/api/categories?depth=2`, {
-      headers: {
-        'Cache-Control': 'no-cache',
-      },
-    });
+    const res = await axios.get(`${apiUrl}/api/categories?depth=2`);
     const categories = res.data.docs || [];
     console.log("Fetched categories:", categories);
     return categories;
   } catch (err) {
-    console.error(
-      "Error fetching categories:",
-      (err as any).response?.data || (err as any).message
-    );
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      "response" in err &&
+      typeof (err as any).response === "object"
+    ) {
+      console.error(
+        "Error fetching categories:",
+        (err as any).response?.data || (err as any).message
+      );
+    } else {
+      console.error("Error fetching categories:", (err as any)?.message || err);
+    }
     return [];
   }
 }
@@ -64,21 +67,28 @@ async function fetchCategories(): Promise<Category[]> {
 async function fetchLatestPosts(): Promise<Post[]> {
   try {
     const res = await axios.get(
-      `${apiUrl}/api/posts?limit=100&depth=2&sort=-publishedAt`,
-      {
-        headers: {
-          'Cache-Control': 'no-cache',
-        },
-      }
+      `${apiUrl}/api/posts?limit=34&depth=2&sort=-publishedAt`
     );
     const posts = res.data.docs || [];
     console.log("Fetched latest posts:", JSON.stringify(posts, null, 2));
     return posts;
   } catch (err) {
-    console.error(
-      "Error fetching latest posts:",
-      (err as any).response?.data || (err as any).message
-    );
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      "response" in err &&
+      typeof (err as any).response === "object"
+    ) {
+      console.error(
+        "Error fetching latest posts:",
+        (err as any).response?.data || (err as any).message
+      );
+    } else {
+      console.error(
+        "Error fetching latest posts:",
+        (err as any)?.message || err
+      );
+    }
     return [];
   }
 }
@@ -87,12 +97,7 @@ async function fetchLatestPosts(): Promise<Post[]> {
 async function fetchPostsByCategory(categoryId: string): Promise<Post[]> {
   try {
     const res = await axios.get(
-      `${apiUrl}/api/posts?limit=7&depth=2&where[categories][contains]=${categoryId}`,
-      {
-        headers: {
-          'Cache-Control': 'no-cache',
-        },
-      }
+      `${apiUrl}/api/posts?limit=7&depth=2&where[categories][contains]=${categoryId}`
     );
     console.log(
       `Fetched ${res.data.docs.length} posts for category ID ${categoryId}:`,
@@ -100,10 +105,22 @@ async function fetchPostsByCategory(categoryId: string): Promise<Post[]> {
     );
     return res.data.docs || [];
   } catch (err) {
-    console.error(
-      `Error fetching posts for category ID ${categoryId}:`,
-      (err as any).response?.data || (err as any).message
-    );
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      "response" in err &&
+      typeof (err as any).response === "object"
+    ) {
+      console.error(
+        `Error fetching posts for category ID ${categoryId}:`,
+        (err as any).response?.data || (err as any).message
+      );
+    } else {
+      console.error(
+        `Error fetching posts for category ID ${categoryId}:`,
+        (err as any)?.message || err
+      );
+    }
     return [];
   }
 }
@@ -113,11 +130,7 @@ async function fetchParentCategory(
   parentId: string
 ): Promise<{ slug: string; title: string } | null> {
   try {
-    const res = await axios.get(`${apiUrl}/api/categories/${parentId}?depth=1`, {
-      headers: {
-        'Cache-Control': 'no-cache',
-      },
-    });
+    const res = await axios.get(`${apiUrl}/api/categories/${parentId}?depth=1`);
     const parentCategory = res.data || null;
     if (!parentCategory) {
       console.log(`No parent category found for ID: ${parentId}`);
@@ -129,10 +142,22 @@ async function fetchParentCategory(
       title: parentCategory.title || "Uncategorized",
     };
   } catch (err) {
-    console.error(
-      `Error fetching parent category with ID ${parentId}:`,
-      (err as any).response?.data || (err as any).message
-    );
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      "response" in err &&
+      typeof (err as any).response === "object"
+    ) {
+      console.error(
+        `Error fetching parent category with ID ${parentId}:`,
+        (err as any).response?.data || (err as any).message
+      );
+    } else {
+      console.error(
+        `Error fetching parent category with ID ${parentId}:`,
+        (err as any)?.message || err
+      );
+    }
     return null;
   }
 }
@@ -184,11 +209,8 @@ export default async function Home() {
 
   const featuredPost = latestPosts.length > 0 ? latestPosts[0] : null;
   const smallerPosts = latestPosts.length > 1 ? latestPosts.slice(1, 4) : [];
-  const additionalPosts = latestPosts.length > 4 ? latestPosts.slice(4) : [];
-
-  console.log("Featured post:", featuredPost?.title);
-  console.log("Smaller posts:", smallerPosts.map(p => p.title));
-  console.log("Additional posts:", additionalPosts.map(p => p.title));
+  const additionalPosts =
+    latestPosts.length > 4 ? latestPosts.slice(4, 34) : [];
 
   const categoryOrder: { [key: string]: number } = {
     தமிழ்நாடு: 0,
@@ -235,7 +257,7 @@ export default async function Home() {
                       position: "relative",
                       overflow: "hidden",
                     }}
-                    styles={{ body: { padding: 0 } }}
+                    styles={{ body: { padding: 0 } }} // Replace bodyStyle with styles.body
                   >
                     <div style={{ position: "relative" }}>
                       {(() => {
@@ -452,6 +474,7 @@ export default async function Home() {
                       style={{ padding: "0 20px" }}
                     >
                       <div className="post-first-tag">
+                        {/* Define categoryLink for additionalPosts section */}
                         {(() => {
                           let categoryLink = "/uncategorized";
                           let categoryTitle = "Uncategorized";
@@ -475,6 +498,15 @@ export default async function Home() {
                             </Link>
                           );
                         })()}
+
+                        {/* <span style={{ marginTop: "4px", marginLeft: ((post.tags ?? []).length > 0 ? "8px" : "0") }}>
+                    <Space size={4}>
+                      <ClockCircleOutlined style={{ fontSize: "12px", color: "#8c8c8c" }} />
+                      <Text type="secondary" style={{ fontSize: "12px" }}>
+                        5 Min Read
+                      </Text>
+                    </Space>
+                  </span> */}
                         <span
                           className="shareButton"
                           data-url=""
@@ -737,4 +769,58 @@ export default async function Home() {
       )}
     </div>
   );
+}
+
+
+export async function generateStaticParams() {
+  const categories = await fetchCategories();
+  const paths: { categorySlug: string; postSlug: string }[] = [];
+
+  // Fetch all posts
+  try {
+    const res = await axios.get(`${apiUrl}/api/posts?limit=1000&depth=2`);
+    const posts: Post[] = res.data.docs || [];
+
+    // Generate paths for posts
+    for (const post of posts) {
+      if (post.categories && post.categories.length > 0) {
+        const primaryCategory = post.categories[0];
+        let categorySlug = primaryCategory.slug;
+
+        // Handle subcategories
+        if (primaryCategory.parent) {
+          const parent =
+            typeof primaryCategory.parent === "string"
+              ? await fetchParentCategory(primaryCategory.parent)
+              : primaryCategory.parent;
+          if (parent) {
+            categorySlug = parent.slug;
+          } else {
+            continue; // Skip if parent category is not found
+          }
+        }
+
+        paths.push({
+          categorySlug,
+          postSlug: post.slug || "fallback-slug",
+        });
+      }
+    }
+
+    // Generate paths for top-level categories as postSlug (if they act as a category page)
+    for (const category of categories) {
+      if (!category.parent) {
+        paths.push({
+          categorySlug: category.slug,
+          postSlug: category.slug, // Treat category as a postSlug for category pages
+        });
+      }
+    }
+
+    console.log(`Generated ${paths.length} static paths`);
+    return paths;
+  } catch (err) {
+    console.error("Error in generateStaticParams:", err);
+    return [];
+  }
 }
