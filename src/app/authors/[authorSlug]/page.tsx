@@ -232,7 +232,7 @@ export default async function AuthorPage({
   const totalPages = Math.ceil(total / limit);
 
   return (
-    <div className="site" style={{ minHeight: "100vh", padding: "20px" }}>
+    <div className="site" >
       <div className="site-main" style={{ marginBottom: "20px" }}>
         <h1
           className="category-title text-3xl font-bold mb-6"

@@ -68,12 +68,12 @@ function getImageUrl(url: string | undefined): string | null {
 }
 
 // Helper function to calculate read time
-function calculateReadTime(description: string | undefined): string {
-  if (!description) return "1 Min Read";
-  const words = description.split(/\s+/).length;
-  const minutes = Math.ceil(words / 200);
-  return `${minutes} Min Read`;
-}
+// function calculateReadTime(description: string | undefined): string {
+//   if (!description) return "1 Min Read";
+//   const words = description.split(/\s+/).length;
+//   const minutes = Math.ceil(words / 200);
+//   return `${minutes} Min Read`;
+// }
 
 // Fetch posts by search query with pagination
 async function fetchPostsBySearch(
@@ -256,7 +256,7 @@ export default async function SearchPage({
                   }
                 }
 
-                const readTime = calculateReadTime(post.meta?.description);
+                // const readTime = calculateReadTime(post.meta?.description);
 
                 return (
                   <article
@@ -282,7 +282,7 @@ export default async function SearchPage({
                             </Link>
                           )}
                           <span style={{ marginTop: "4px" }}>
-                            <Space size={4}>
+                            {/* <Space size={4}>
                               <ClockCircleOutlined
                                 style={{ fontSize: "12px", color: "#8c8c8c" }}
                               />
@@ -292,7 +292,7 @@ export default async function SearchPage({
                               >
                                 {readTime}
                               </Text>
-                            </Space>
+                            </Space> */}
                           </span>
                           <ShareButton
                             url={`${baseUrl}${postUrl}`} // Updated to use dynamic baseUrl

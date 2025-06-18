@@ -414,138 +414,129 @@ export default async function Home() {
       )}
 
       {/* Additional Posts Section */}
-      {additionalPosts.length > 0 && (
-        <section
-          className="latest-posts-grid mob-50"
-          style={{ marginTop: "30px" }}
-        >
-          <div className="category-grid">
-            {await Promise.all(
-              additionalPosts.map(async (post) => {
-                const imageUrl = getImageUrl(post.heroImage?.url);
-                const imageAlt = post.heroImage?.alt || post.title;
+{additionalPosts.length > 0 && (
+  <section
+    className="latest-posts-grid mob-50"
+    style={{ marginTop: "30px" }}
+  >
+    <div className="category-grid">
+      {await Promise.all(
+        additionalPosts.map(async (post) => {
+          const imageUrl = getImageUrl(post.heroImage?.url);
+          const imageAlt = post.heroImage?.alt || post.title;
 
-                return (
+          return (
+            <div
+              key={post.id}
+              className="flex flex-col md:flex-row gap-4 border-b pb-6 hover:bg-gray-50 transition"
+              style={{
+                borderBottom: "1px solid #ccc",
+                paddingBottom: "20px",
+              }}
+            >
+              <Link
+                href={await getPostUrl(post)}
+                className="flex flex-col md:flex-row flex-1"
+              >
+                {imageUrl ? (
                   <div
-                    key={post.id}
-                    className="flex flex-col md:flex-row gap-4 border-b pb-6 hover:bg-gray-50 transition"
-                    style={{
-                      borderBottom: "1px solid #ccc",
-                      paddingBottom: "20px",
-                    }}
+                    className="relative w-full md:w-48 h-48 overflow-hidden rounded-t-lg md:rounded-lg"
+                    style={{ padding: "0 20px" }}
                   >
-                    <Link
-                      href={await getPostUrl(post)}
-                      className="flex flex-col md:flex-row flex-1"
-                    >
-                      {imageUrl ? (
-                        <div
-                          className="relative w-full md:w-48 h-48 overflow-hidden rounded-t-lg md:rounded-lg"
-                          style={{ padding: "0 20px" }}
-                        >
-                          <img
-                            src={imageUrl}
-                            alt={imageAlt}
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                            style={{ borderRadius: "10px" }}
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-full md:w-48 h-48 bg-gray-100 rounded-t-lg md:rounded-lg flex items-center justify-content-center">
-                          <span className="text-gray-400 text-sm">
-                            No Image
-                          </span>
-                        </div>
-                      )}
-                      <article
-                        className="flex flex-col h-full flex-1"
-                        style={{ padding: "0 20px" }}
-                      >
-                        <div className="post-item-category api-title">
-                          <div className="flex-1">
-                            <h3 className="latest-post-title">
-                              {post.title || "Untitled Post"}
-                            </h3>
-                          </div>
-                        </div>
-                      </article>
-                    </Link>
-                    <div
-                      className="flex flex-col h-full flex-1"
-                      style={{ padding: "0 20px" }}
-                    >
-                      <div className="post-first-tag">
-                        {/* Define categoryLink for additionalPosts section */}
-                        {(() => {
-                          let categoryLink = "/uncategorized";
-                          let categoryTitle = "Uncategorized";
-                          if (post.categories && post.categories.length > 0) {
-                            const cat = post.categories[0];
-                            categoryLink = `/${cat.slug}`;
-                            categoryTitle = cat.title;
-                            if (cat.parent) {
-                              const parent =
-                                typeof cat.parent === "string"
-                                  ? null
-                                  : cat.parent;
-                              if (parent) {
-                                categoryLink = `/${parent.slug}/${cat.slug}`;
-                              }
-                            }
-                          }
-                          return (
-                            <Link href={categoryLink}>
-                              <h2 className="home-category">{categoryTitle}</h2>
-                            </Link>
-                          );
-                        })()}
-
-                        {/* <span style={{ marginTop: "4px", marginLeft: ((post.tags ?? []).length > 0 ? "8px" : "0") }}>
-                    <Space size={4}>
-                      <ClockCircleOutlined style={{ fontSize: "12px", color: "#8c8c8c" }} />
-                      <Text type="secondary" style={{ fontSize: "12px" }}>
-                        5 Min Read
-                      </Text>
-                    </Space>
-                  </span> */}
-                        <span
-                          className="shareButton"
-                          data-url=""
-                          style={{ marginLeft: "8px" }}
-                        >
-                          <svg
-                            width="22"
-                            height="18"
-                            viewBox="0 0 22 18"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <g clipPath="url(#clip0_4600_28)">
-                              <path
-                                d="M0.656855 18.3763C0.57123 18.3767 0.486122 18.363 0.40498 18.3356C0.235292 18.2805 0.088454 18.1711 -0.0128684 18.0243C-0.114191 17.8774 -0.164364 17.7013 -0.155645 17.5231C-0.155645 17.4013 0.68123 5.60375 12.5112 4.6775V0.436251C12.5111 0.274716 12.5591 0.116806 12.6491 -0.0173126C12.7392 -0.151431 12.8671 -0.255668 13.0167 -0.316712C13.1662 -0.377755 13.3306 -0.392834 13.4888 -0.360022C13.6469 -0.32721 13.7917 -0.247996 13.9047 -0.132499L21.924 8.0575C22.0729 8.20938 22.1563 8.41358 22.1563 8.62625C22.1563 8.83893 22.0729 9.04312 21.924 9.195L13.9047 17.385C13.7917 17.5005 13.6469 17.5797 13.4888 17.6125C13.3306 17.6453 13.1662 17.6303 13.0167 17.5692C12.8671 17.5082 12.7392 17.4039 12.6491 17.2698C12.5591 17.1357 12.5111 16.9778 12.5112 16.8163V12.6563C4.61373 12.9569 1.37592 17.9375 1.34342 17.9984C1.27012 18.1142 1.16873 18.2095 1.0487 18.2756C0.928659 18.3416 0.793867 18.3763 0.656855 18.3763ZM14.1362 2.42688V5.43719C14.1364 5.64784 14.0547 5.85031 13.9084 6.00189C13.7621 6.15347 13.5627 6.24232 13.3522 6.24969C5.69842 6.53 2.96029 11.6284 1.97717 14.9069C4.00842 13.1519 7.6281 11.0069 13.275 11.0069H13.3115C13.527 11.0069 13.7337 11.0925 13.8861 11.2449C14.0384 11.3972 14.124 11.6039 14.124 11.8194V14.8297L20.2178 8.63031L14.1362 2.42688Z"
-                                fill="#A0A0A0"
-                              ></path>
-                            </g>
-                            <defs>
-                              <clipPath id="clip0_4600_28">
-                                <rect
-                                  width="22"
-                                  height="18"
-                                  fill="white"
-                                ></rect>
-                              </clipPath>
-                            </defs>
-                          </svg>
-                        </span>
-                      </div>
+                    <img
+                      src={imageUrl}
+                      alt={imageAlt}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      style={{ borderRadius: "10px" }}
+                    />
+                  </div>
+                ) : (
+                  <div className="w-full md:w-48 h-48 bg-gray-100 rounded-t-lg md:rounded-lg flex items-center justify-content-center">
+                    <span className="text-gray-400 text-sm">
+                      No Image
+                    </span>
+                  </div>
+                )}
+                <article
+                  className="flex flex-col h-full flex-1"
+                  style={{ padding: "0 20px" }}
+                >
+                  <div className="post-item-category api-title">
+                    <div className="flex-1">
+                      <h3 className="latest-post-title">
+                        {post.title || "Untitled Post"}
+                      </h3>
                     </div>
                   </div>
-                );
-              })
-            )}
-          </div>
-        </section>
+                </article>
+              </Link>
+              <div
+                className="flex flex-col h-full flex-1"
+                style={{ padding: "0 20px" }}
+              >
+                <div className="post-first-tag">
+                  {/* Fixed category link generation */}
+                  {await (async () => {
+                    let categoryLink = "/uncategorized";
+                    let categoryTitle = "Uncategorized";
+                    if (post.categories && post.categories.length > 0) {
+                      const cat = post.categories[0];
+                      categoryLink = `/${cat.slug}`;
+                      categoryTitle = cat.title;
+                      if (cat.parent) {
+                        const parent =
+                          typeof cat.parent === "string"
+                            ? await fetchParentCategory(cat.parent)
+                            : cat.parent;
+                        if (parent) {
+                          categoryLink = `/${parent.slug}/${cat.slug}`;
+                        }
+                      }
+                    }
+                    return (
+                      <Link href={categoryLink}>
+                        <h2 className="home-category">{categoryTitle}</h2>
+                      </Link>
+                    );
+                  })()}
+                  <span
+                    className="shareButton"
+                    data-url=""
+                    style={{ marginLeft: "8px" }}
+                  >
+                    <svg
+                      width="22"
+                      height="18"
+                      viewBox="0 0 22 18"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <g clipPath="url(#clip0_4600_28)">
+                        <path
+                          d="M0.656855 18.3763C0.57123 18.3767 0.486122 18.363 0.40498 18.3356C0.235292 18.2805 0.088454 18.1711 -0.0128684 18.0243C-0.114191 17.8774 -0.164364 17.7013 -0.155645 17.5231C-0.155645 17.4013 0.68123 5.60375 12.5112 4.6775V0.436251C12.5111 0.274716 12.5591 0.116806 12.6491 -0.0173126C12.7392 -0.151431 12.8671 -0.255668 13.0167 -0.316712C13.1662 -0.377755 13.3306 -0.392834 13.4888 -0.360022C13.6469 -0.32721 13.7917 -0.247996 13.9047 -0.132499L21.924 8.0575C22.0729 8.20938 22.1563 8.41358 22.1563 8.62625C22.1563 8.83893 22.0729 9.04312 21.924 9.195L13.9047 17.385C13.7917 17.5005 13.6469 17.5797 13.4888 17.6125C13.3306 17.6453 13.1662 17.6303 13.0167 17.5692C12.8671 17.5082 12.7392 17.4039 12.6491 17.2698C12.5591 17.1357 12.5111 16.9778 12.5112 16.8163V12.6563C4.61373 12.9569 1.37592 17.9375 1.34342 17.9984C1.27012 18.1142 1.16873 18.2095 1.0487 18.2756C0.928659 18.3416 0.793867 18.3763 0.656855 18.3763ZM14.1362 2.42688V5.43719C14.1364 5.64784 14.0547 5.85031 13.9084 6.00189C13.7621 6.15347 13.5627 6.24232 13.3522 6.24969C5.69842 6.53 2.96029 11.6284 1.97717 14.9069C4.00842 13.1519 7.6281 11.0069 13.275 11.0069H13.3115C13.527 11.0069 13.7337 11.0925 13.8861 11.2449C14.0384 11.3972 14.124 11.6039 14.124 11.8194V14.8297L20.2178 8.63031L14.1362 2.42688Z"
+                          fill="#A0A0A0"
+                        ></path>
+                      </g>
+                      <defs>
+                        <clipPath id="clip0_4600_28">
+                          <rect
+                            width="22"
+                            height="18"
+                            fill="white"
+                          ></rect>
+                        </clipPath>
+                      </defs>
+                    </svg>
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        })
       )}
+    </div>
+  </section>
+)}
 
       {/* Category-Based Sections */}
       {sortedCategories.length === 0 ? (

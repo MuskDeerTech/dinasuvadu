@@ -5,12 +5,7 @@
   --foreground: #171717;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+
 
 html,
 body {
@@ -381,7 +376,7 @@ img {
 }
 
 .post-item-category img {
-  width: 300px;
+  width: 100%;
   height: auto;
   object-fit: cover;
   border-radius: 8px;
@@ -991,11 +986,7 @@ a:hover {
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-}
+
 
 @media (min-width: 900px) {
   .brand-logo {
