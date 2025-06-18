@@ -1,5 +1,8 @@
+import Seo from '../../components/Seo'
 export default function Archives() {
   return (
+    <>
+     <Seo title="Disclaimer - Dinasuvadu" />
     <div className="site">
       <div className="entry-content">
         <p>
@@ -45,5 +48,6 @@ export default function Archives() {
         </p>
       </div>
     </div>
+    </>
   );
 }

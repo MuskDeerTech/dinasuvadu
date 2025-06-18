@@ -1,5 +1,8 @@
+import Seo from '../../components/Seo'
 export default function AboutUs() {
   return (
+    <>
+    <Seo title="About Us - Dinasuvadu" />
     <div className="site">
       <div className="entry-content">
         <p>
@@ -29,5 +32,6 @@ export default function AboutUs() {
         </p>
       </div>
     </div>
+    </>
   );
 }

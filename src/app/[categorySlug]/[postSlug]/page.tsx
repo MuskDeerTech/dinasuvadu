@@ -7,6 +7,7 @@ import Text from "antd/es/typography/Text";
 import "antd/dist/reset.css"; // Import Ant Design CSS
 import { notFound } from "next/navigation";
 import ShareButton from "../../../components/ShareButton";
+import Seo from "../../../components/Seo"
 
 // Type definitions
 type RichTextChild = {
@@ -339,6 +340,8 @@ export default async function PostOrSubCategoryPage({
     const totalPages = Math.ceil(total / limit);
 
     return (
+      <>
+       <Seo pageType="category" categoryTitle={subCategoryTitle} />
       <div className="site ">
         {/* Breadcrumbs */}
         <nav
@@ -500,6 +503,7 @@ export default async function PostOrSubCategoryPage({
           </p>
         )}
       </div>
+      </>
     );
   }
 
@@ -548,6 +552,8 @@ export default async function PostOrSubCategoryPage({
     : "";
 
   return (
+    <>
+    <Seo pageType="post" postTitle={post.title} />
     <div className="site site-main">
       <div className="post-grid lg:grid lg:grid-cols-3 lg:gap-8">
         {/* Main Article Content */}
@@ -1400,6 +1406,7 @@ export default async function PostOrSubCategoryPage({
         </aside>
       </div>
     </div>
+    </>
   );
 }
 

@@ -6,6 +6,8 @@ import Link from "next/link";
 import "antd/dist/reset.css";
 import { notFound } from "next/navigation";
 import ShareButton from "../../components/ShareButton";
+import Seo from "../../components/Seo";
+
 
 // Type definitions
 type Category = {
@@ -234,6 +236,8 @@ export default async function CategoryPage({
   const totalPages = Math.ceil(total / limit);
 
   return (
+    <>
+      <Seo pageType="category" categoryTitle={categoryTitle} />
     <div className="site">
       {/* Breadcrumbs */}
       <nav
@@ -399,6 +403,7 @@ export default async function CategoryPage({
         </p>
       )}
     </div>
+    </>
   );
 }
 

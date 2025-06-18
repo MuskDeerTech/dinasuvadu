@@ -1,5 +1,8 @@
+import Seo from '../../components/Seo'
 export default function ContactUs() {
   return (
+    <>
+    <Seo title="Contact Us - Dinasuvadu" />
     <div className="site">
       <div className="entry-content">
         <p>
@@ -74,5 +77,6 @@ export default function ContactUs() {
         </p>
       </div>
     </div>
+    </>
   );
 }

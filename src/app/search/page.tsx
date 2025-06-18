@@ -5,6 +5,7 @@ import { ClockCircleOutlined } from "@ant-design/icons";
 import Text from "antd/es/typography/Text";
 import "antd/dist/reset.css";
 import ShareButton from "../../components/ShareButton";
+import Seo from "../../components/Seo"
 
 type Tag = {
   id: string;
@@ -227,6 +228,8 @@ export default async function SearchPage({
   const totalPages = Math.ceil(total / limit);
 
   return (
+   <>
+    <Seo title={`${query} - Dinasuvadu`} />
     <div className="site">
       <div className="site-main">
         <h1 className="category-title">Search Results for: {query}</h1>
@@ -389,5 +392,6 @@ export default async function SearchPage({
         </>
       )}
     </div>
+   </>
   );
 }

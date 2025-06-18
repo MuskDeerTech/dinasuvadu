@@ -413,7 +413,8 @@ export default async function Home() {
         </section>
       )}
 
-      {/* Additional Posts Section */}
+   
+   {/* Additional Posts Section */}
 {additionalPosts.length > 0 && (
   <section
     className="latest-posts-grid mob-50"

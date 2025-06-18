@@ -5,6 +5,7 @@ import Link from "next/link";
 // import Text from "antd/es/typography/Text";
 import "antd/dist/reset.css"; // Import Ant Design CSS
 import ShareButton from "../../../components/ShareButton";
+import Seo from "../../../components/Seo";
 
 type Author = {
   id: string;
@@ -232,6 +233,8 @@ export default async function AuthorPage({
   const totalPages = Math.ceil(total / limit);
 
   return (
+    <>
+    <Seo pageType="author" authorName={author.name} />
     <div className="site" >
       <div className="site-main" style={{ marginBottom: "20px" }}>
         <h1
@@ -403,6 +406,7 @@ export default async function AuthorPage({
         </>
       )}
     </div>
+    </>
   );
 }
 

@@ -5,6 +5,7 @@ import Link from "next/link";
 // import { ClockCircleOutlined } from "@ant-design/icons";
 import Text from "antd/es/typography/Text";
 import { notFound } from "next/navigation";
+import Seo from "../../../../components/Seo";
 
 // Type definitions
 type RichTextChild = {
@@ -394,6 +395,8 @@ export default async function SubCategoryPostPage({
 
   // Render the page
   return (
+    <>
+      <Seo pageType="post" postTitle={post.title} />
     <div className="site site-main">
       <div className="post-grid lg:grid lg:grid-cols-3 lg:gap-8">
         {/* Main Article Content */}
@@ -1197,6 +1200,7 @@ export default async function SubCategoryPostPage({
         </aside>
       </div>
     </div>
+    </>
   );
 }
 

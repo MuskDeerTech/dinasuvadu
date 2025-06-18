@@ -341,10 +341,12 @@ img {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px ;
 }
 
 .post-tags a {
-  margin-top: 10px;
+  
   text-decoration: none;
   border-radius: 5px;
   padding: 5px 10px;
@@ -984,6 +986,7 @@ a:hover {
   .footer-bottom {
     font-size: 12px;
   }
+ 
 }
 
 

@@ -5,6 +5,7 @@ import Link from "next/link";
 // import Text from "antd/es/typography/Text";
 import "antd/dist/reset.css"; // Import Ant Design CSS
 import ShareButton from "../../../components/ShareButton";
+import Seo from "../../../components/Seo";
 
 type Tag = {
   id: string;
@@ -236,6 +237,8 @@ export default async function TagPage({
   const totalPages = Math.ceil(total / limit);
 
   return (
+   <>
+    <Seo pageType="tag" tagTitle={tag.name} />
     <div className="site">
       <div className="site-main">
         <h1 className="category-title">Tag: {tag.name}</h1>{" "}
@@ -390,6 +393,7 @@ export default async function TagPage({
         </>
       )}
     </div>
+   </>
   );
 }
 

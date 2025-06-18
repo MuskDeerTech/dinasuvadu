@@ -1,5 +1,8 @@
+import Seo from '../../components/Seo'
 export default function TermsConditions() {
   return (
+    <>
+     <Seo title="Terms & Conditions - Dinasuvadu" />
     <div className="site">
       <div className="entry-content">
         <p>TERMS OF USE:</p>
@@ -376,5 +379,6 @@ export default function TermsConditions() {
         </p>
       </div>
     </div>
+    </>
   );
 }
