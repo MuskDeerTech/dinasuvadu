@@ -31,7 +31,8 @@ export default function Seo({
   const pathname = usePathname();
 
   // Dynamically generate title based on pageType and provided titles
-  let dynamicTitle = title || "Dinasuvadu - Tamil News, Breaking News ,தமிழ் செய்திகள்";
+  let dynamicTitle =
+    title || "Dinasuvadu - Tamil News, Breaking News ,தமிழ் செய்திகள்";
   switch (pageType) {
     case "category":
       dynamicTitle = `${categoryTitle || "Category"} - Dinasuvadu`;
@@ -49,6 +50,10 @@ export default function Seo({
       dynamicTitle = "Dinasuvadu - Tamil News, Breaking News ,தமிழ் செய்திகள்";
   }
 
+  // Define the font URL for preloading
+  const fontUrl =
+    "https://fonts.gstatic.com/s/muktamalar/v14/MCoRzAXyz8LOE2FpJMxZqI2tKX7pHg.ttf";
+
   return (
     <>
       <title>{dynamicTitle}</title>
@@ -61,7 +66,10 @@ export default function Seo({
       />
       <meta property="og:title" content={dynamicTitle} />
       <meta property="og:description" content={description} />
-      <meta property="og:url" content={`https://dev.dinasuvadu.com${pathname || ""}`} />
+      <meta
+        property="og:url"
+        content={`https://dev.dinasuvadu.com${pathname || ""}`}
+      />
       <meta property="og:site_name" content="Dinasuvadu" />
       <meta property="og:type" content={type} />
       <meta property="og:locale" content="ta_IN" />
@@ -78,7 +86,14 @@ export default function Seo({
         rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Mukta+Malar:wght@200;300;400;500;600;700;800&display=swap"
         crossOrigin=""
+         media="print"
+        onLoad={(e) => {
+          const link = e.currentTarget as HTMLLinkElement;
+          link.media = "all";
+        }}
       />
+      <link rel="preload" href={fontUrl} as="font" type="font/woff2" crossOrigin="anonymous" />
+    
     </>
   );
 }
