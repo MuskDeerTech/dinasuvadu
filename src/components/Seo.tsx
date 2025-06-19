@@ -1,8 +1,4 @@
 // components/Seo.tsx
-"use client";
-
-import { usePathname } from "next/navigation";
-
 type SeoProps = {
   title?: string; // Custom title if provided
   description?: string;
@@ -14,6 +10,7 @@ type SeoProps = {
   postTitle?: string; // For post pages
   tagTitle?: string; // For tag pages
   authorName?: string; // For author pages
+  pathname?: string; // Add pathname as a prop
 };
 
 export default function Seo({
@@ -27,9 +24,8 @@ export default function Seo({
   postTitle,
   tagTitle,
   authorName,
+  pathname, // Use pathname prop
 }: SeoProps) {
-  const pathname = usePathname();
-
   // Dynamically generate title based on pageType and provided titles
   let dynamicTitle =
     title || "Dinasuvadu - Tamil News, Breaking News ,தமிழ் செய்திகள்";
@@ -85,15 +81,9 @@ export default function Seo({
       <link
         rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Mukta+Malar:wght@200;300;400;500;600;700;800&display=swap"
-        crossOrigin=""
-         media="print"
-        onLoad={(e) => {
-          const link = e.currentTarget as HTMLLinkElement;
-          link.media = "all";
-        }}
+        media="all" // Remove onLoad and set media to "all" by default
       />
-      <link rel="preload" href={fontUrl} as="font" type="font/woff2" crossOrigin="anonymous" />
-    
+      <link rel="preload" href={fontUrl} as="font" type="font/ttf" crossOrigin="anonymous" /> 
     </>
   );
 }

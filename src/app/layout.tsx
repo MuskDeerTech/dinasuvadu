@@ -1,4 +1,3 @@
-
 import "./globals.css";
 import "antd/dist/reset.css";
 import Header from "../components/Header";
@@ -40,8 +39,6 @@ async function fetchCategories(): Promise<Category[]> {
   }
 }
 
-
-
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -49,10 +46,13 @@ export default async function RootLayout({
 }>) {
   const categories = await fetchCategories();
 
+  // For now, use a default pathname; in practice, use a dynamic value if needed
+  const defaultPathname = "/"; // Adjust based on your routing logic
+
   return (
     <html lang="ta" suppressHydrationWarning>
       <body suppressHydrationWarning>
-        <Seo />
+        <Seo pathname={defaultPathname} /> {/* Pass pathname prop */}
         <Header categories={categories} />
         {children}
         <Footer />
