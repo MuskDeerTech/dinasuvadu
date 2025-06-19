@@ -4,6 +4,10 @@ export function middleware(request: NextRequest) {
   const url = request.nextUrl;
   const pathname = url.pathname;
 
+  // Set default Cache-Control header for caching (align with revalidate = 60)
+  const response = NextResponse.next();
+  response.headers.set('Cache-Control', 's-maxage=60, stale-while-revalidate');
+
   // Redirect /rss and /rss.xml to /feed (for root)
   if (pathname === '/rss' || pathname === '/rss.xml') {
     console.log(`Redirecting ${pathname} to /feed`);
@@ -43,11 +47,12 @@ export function middleware(request: NextRequest) {
       url.pathname = '/sitemap-post';
       url.searchParams.set('page', page);
       console.log(`Rewriting ${pathname} to /sitemap-post?page=${page}`);
-      return NextResponse.rewrite(url);
+      return NextResponse.rewrite(url, { request: { headers: response.headers } });
     }
   }
 
-  return NextResponse.next();
+  // Return response with Cache-Control header
+  return response;
 }
 
 export const config = {
@@ -57,6 +62,6 @@ export const config = {
     '/rss.xml',
     '/:categorySlug/(rss|rss.xml)',
     '/:categorySlug/:postSlug/(rss|rss.xml)',
-    '/tags/:tagSlug/(rss|rss.xml)', // Added for tag RSS feeds
+    '/tags/:tagSlug/(rss|rss.xml)',
   ],
 };

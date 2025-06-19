@@ -1,4 +1,5 @@
-export const revalidate = 60; // Revalidate every 60 seconds
+export const dynamic = "force-static"; // Force static generation where possible
+export const revalidate = 60;
 import axios from "axios";
 import Link from "next/link";
 // import { Space } from "antd";
@@ -1411,91 +1412,38 @@ export default async function PostOrSubCategoryPage({
 }
 
 export async function generateStaticParams() {
-  console.log("Entering generateStaticParams for [categorySlug]/[postSlug]");
-
   const params: { categorySlug: string; postSlug: string }[] = [];
-
   try {
-    // Fetch all posts
+    const categoryRes = await axios.get(`${apiUrl}/api/categories?limit=1000&depth=2`);
+    const categories: Category[] = categoryRes.data.docs || [];
+    for (const category of categories) {
+      if (category.slug) {
+        params.push({ categorySlug: category.slug, postSlug: category.slug }); // For category pages
+        if (category.parent) {
+          const parent = typeof category.parent === "string" ? await fetchParentCategory(category.parent) : category.parent;
+          if (parent && parent.slug) {
+            params.push({ categorySlug: parent.slug, postSlug: category.slug }); // For subcategories
+          }
+        }
+      }
+    }
     const postRes = await axios.get(`${apiUrl}/api/posts?limit=1000&depth=3`);
     const posts: Post[] = postRes.data.docs || [];
-    console.log(`Fetched ${posts.length} posts for static generation`);
-
-    // Generate paths for posts
     for (const post of posts) {
-      if (!post.slug) {
-        console.warn(`Skipping post with missing slug: ${post.id}`);
-        continue;
-      }
-
       const category = post.categories?.[0];
-      if (!category) {
-        console.warn(`Skipping post ${post.slug} with no categories`);
-        continue;
-      }
-
-      let categorySlug = category.slug || "uncategorized";
-      if (category.parent) {
-        const parent =
-          typeof category.parent === "string"
-            ? await fetchParentCategory(category.parent)
-            : category.parent;
-        if (!parent || !parent.slug) {
-          console.warn(
-            `Skipping post ${post.slug} due to missing parent category`
-          );
-          continue;
+      if (category) {
+        let categorySlug = category.slug || "uncategorized";
+        if (category.parent) {
+          const parent = typeof category.parent === "string" ? await fetchParentCategory(category.parent) : category.parent;
+          if (parent && parent.slug) categorySlug = parent.slug;
         }
-        categorySlug = parent.slug;
-      }
-
-      params.push({
-        categorySlug,
-        postSlug: post.slug,
-      });
-      console.log(`Generated path: ${categorySlug}/${post.slug}`);
-    }
-
-    // Fetch all categories
-    const categoryRes = await axios.get(
-      `${apiUrl}/api/categories?limit=1000&depth=2`
-    );
-    const categories: Category[] = categoryRes.data.docs || [];
-    console.log(`Fetched ${categories.length} categories`);
-
-    // Generate paths for subcategories
-    for (const category of categories) {
-      if (!category.slug) {
-        console.warn(`Skipping category with missing slug: ${category.id}`);
-        continue;
-      }
-
-      if (category.parent) {
-        const parent =
-          typeof category.parent === "string"
-            ? await fetchParentCategory(category.parent)
-            : category.parent;
-        if (parent && parent.slug) {
-          params.push({
-            categorySlug: parent.slug,
-            postSlug: category.slug,
-          });
-          console.log(`Generated subcategory path: ${parent.slug}/${category.slug}`);
-        } else {
-          console.warn(
-            `Skipping subcategory ${category.slug} due to missing parent`
-          );
-        }
+        params.push({ categorySlug, postSlug: post.slug });
       }
     }
-
     console.log(`Total static params generated: ${params.length}`);
     return params;
   } catch (error) {
-    console.error(
-      "Error generating static params:",
-      (error as any).response?.data || (error as any).message
-    );
+    console.error("Error generating static params:", (error as any).response?.data || (error as any).message);
     return [];
   }
 }
