@@ -1,3 +1,4 @@
+// src/app/layout.tsx
 import "./globals.css";
 import "antd/dist/reset.css";
 import Header from "../components/Header";
@@ -17,24 +18,9 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 async function fetchCategories(): Promise<Category[]> {
   try {
     const res = await axios.get(`${apiUrl}/api/categories?depth=2`);
-    const categories = res.data.docs || [];
-    console.log("Fetched categories for layout:", categories);
-    return categories;
+    return res.data.docs || [];
   } catch (err) {
-    if (
-      err &&
-      typeof err === "object" &&
-      "response" in err &&
-      err.response &&
-      typeof err.response === "object" &&
-      "data" in err.response
-    ) {
-      console.error("Error fetching categories for layout:", err.response.data);
-    } else if (err instanceof Error) {
-      console.error("Error fetching categories for layout:", err.message);
-    } else {
-      console.error("Error fetching categories for layout:", err);
-    }
+    console.error("Error fetching categories for layout:", err);
     return [];
   }
 }
@@ -46,13 +32,10 @@ export default async function RootLayout({
 }>) {
   const categories = await fetchCategories();
 
-  // For now, use a default pathname; in practice, use a dynamic value if needed
-  const defaultPathname = "/"; // Adjust based on your routing logic
-
   return (
     <html lang="ta" suppressHydrationWarning>
       <body suppressHydrationWarning>
-        <Seo pathname={defaultPathname} /> {/* Pass pathname prop */}
+        <Seo pathname="/" /> {/* Homepage canonical URL */}
         <Header categories={categories} />
         {children}
         <Footer />

@@ -396,7 +396,9 @@ export default async function SubCategoryPostPage({
   // Render the page
   return (
     <>
-      <Seo pageType="post" postTitle={post.title} />
+      <Seo pageType="post" postTitle={post.title}
+      pathname={`/${categorySlug}/${postSlug}/${subPostSlug}`}
+       />
     <div className="site site-main">
       <div className="post-grid lg:grid lg:grid-cols-3 lg:gap-8">
         {/* Main Article Content */}

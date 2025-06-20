@@ -238,7 +238,9 @@ export default async function TagPage({
 
   return (
    <>
-    <Seo pageType="tag" tagTitle={tag.name} />
+    <Seo pageType="tag" tagTitle={tag.name}
+    pathname={`/tags/${tagSlug}`} 
+    />
     <div className="site">
       <div className="site-main">
         <h1 className="category-title">Tag: {tag.name}</h1>{" "}

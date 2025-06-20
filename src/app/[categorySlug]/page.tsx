@@ -237,7 +237,11 @@ export default async function CategoryPage({
 
   return (
     <>
-      <Seo pageType="category" categoryTitle={categoryTitle} />
+      <Seo
+        pageType="category"
+        categoryTitle={categoryTitle}
+        pathname={`/category/${categorySlug}`}
+      />
     <div className="site">
       {/* Breadcrumbs */}
       <nav

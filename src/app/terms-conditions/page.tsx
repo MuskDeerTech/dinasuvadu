@@ -2,7 +2,9 @@ import Seo from '../../components/Seo'
 export default function TermsConditions() {
   return (
     <>
-     <Seo title="Terms & Conditions - Dinasuvadu" />
+     <Seo title="Terms & Conditions - Dinasuvadu" 
+     pathname='/terms-conditions'
+     />
     <div className="site">
       <div className="entry-content">
         <p>TERMS OF USE:</p>

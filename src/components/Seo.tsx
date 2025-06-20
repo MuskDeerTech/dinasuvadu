@@ -1,17 +1,16 @@
-
 // components/Seo.tsx
 type SeoProps = {
-  title?: string; // Custom title if provided
+  title?: string;
   description?: string;
   keywords?: string;
   image?: string;
   type?: string;
-  pageType?: "category" | "post" | "tag" | "author" | "default"; // Add page type to determine title structure
-  categoryTitle?: string; // For category pages
-  postTitle?: string; // For post pages
-  tagTitle?: string; // For tag pages
-  authorName?: string; // For author pages
-  pathname?: string; // Add pathname as a prop
+  pageType?: "category" | "post" | "tag" | "author" | "default";
+  categoryTitle?: string;
+  postTitle?: string;
+  tagTitle?: string;
+  authorName?: string;
+  pathname?: string;
 };
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://dev.dinasuvadu.com";
@@ -27,8 +26,9 @@ export default function Seo({
   postTitle,
   tagTitle,
   authorName,
-  pathname,
+  pathname = "/", // Default to "/" if pathname is not provided
 }: SeoProps) {
+  // Dynamically generate title based on pageType and provided titles
   let dynamicTitle =
     title || "Dinasuvadu - Tamil News, Breaking News ,தமிழ் செய்திகள்";
   switch (pageType) {
@@ -48,6 +48,11 @@ export default function Seo({
       dynamicTitle = "Dinasuvadu - Tamil News, Breaking News ,தமிழ் செய்திகள்";
   }
 
+  // Ensure pathname starts with a slash and has no trailing slash
+  const normalizedPathname = pathname.startsWith("/") ? pathname : `/${pathname}`;
+  const canonicalUrl = `${baseUrl}${normalizedPathname === "/" ? "" : normalizedPathname}`;
+
+  // Define the font URL for preloading
   const fontUrl =
     "https://fonts.gstatic.com/s/muktamalar/v14/MCoRzAXyz8LOE2FpJMxZqI2tKX7pHg.ttf";
 
@@ -57,10 +62,10 @@ export default function Seo({
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords} />
       <meta name="robots" content="index, follow" />
-      <link rel="canonical" href={`${baseUrl}${pathname || ""}`} />
+      <link rel="canonical" href={canonicalUrl} />
       <meta property="og:title" content={dynamicTitle} />
       <meta property="og:description" content={description} />
-      <meta property="og:url" content={`${baseUrl}${pathname || ""}`} />
+      <meta property="og:url" content={canonicalUrl} />
       <meta property="og:site_name" content="Dinasuvadu" />
       <meta property="og:type" content={type} />
       <meta property="og:locale" content="ta_IN" />

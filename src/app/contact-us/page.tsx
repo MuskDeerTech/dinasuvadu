@@ -2,7 +2,7 @@ import Seo from '../../components/Seo'
 export default function ContactUs() {
   return (
     <>
-    <Seo title="Contact Us - Dinasuvadu" />
+    <Seo title="Contact Us - Dinasuvadu" pathname="/contact-us" />
     <div className="site">
       <div className="entry-content">
         <p>

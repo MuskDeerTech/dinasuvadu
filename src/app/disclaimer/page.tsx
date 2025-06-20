@@ -2,7 +2,7 @@ import Seo from '../../components/Seo'
 export default function Archives() {
   return (
     <>
-     <Seo title="Disclaimer - Dinasuvadu" />
+     <Seo title="Disclaimer - Dinasuvadu" pathname="/disclaimer" />
     <div className="site">
       <div className="entry-content">
         <p>

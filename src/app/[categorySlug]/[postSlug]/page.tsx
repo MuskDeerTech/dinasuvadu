@@ -342,7 +342,12 @@ export default async function PostOrSubCategoryPage({
 
     return (
       <>
-       <Seo pageType="category" categoryTitle={subCategoryTitle} />
+      
+      <Seo
+          pageType="category"
+          categoryTitle={subCategoryTitle}
+          pathname={`/${categorySlug}/${postSlug}`}
+        />
       <div className="site ">
         {/* Breadcrumbs */}
         <nav
@@ -554,7 +559,9 @@ export default async function PostOrSubCategoryPage({
 
   return (
     <>
-    <Seo pageType="post" postTitle={post.title} />
+    <Seo pageType="post" postTitle={post.title} 
+    pathname={`/${categorySlug}/${postSlug}`}
+    />
     <div className="site site-main">
       <div className="post-grid lg:grid lg:grid-cols-3 lg:gap-8">
         {/* Main Article Content */}
