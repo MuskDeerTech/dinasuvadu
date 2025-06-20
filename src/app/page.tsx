@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Row, Col, Card, Space } from "antd";
 // import { ClockCircleOutlined } from '@ant-design/icons';
 import Text from "antd/es/typography/Text";
+import Seo from "../components/Seo"
 
 // Type definitions
 type Category = {
@@ -241,6 +242,8 @@ export default async function Home() {
   );
 
   return (
+    <>
+    <Seo pathname="/" pageType="post" postTitle="Home" />
     <div className="site">
       {/* Latest News Section */}
       {(featuredPost || smallerPosts.length > 0) && (
@@ -761,6 +764,7 @@ export default async function Home() {
         )
       )}
     </div>
+    </>
   );
 }
 

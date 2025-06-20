@@ -339,6 +339,9 @@ export default async function PostOrSubCategoryPage({
 
     const { posts, total } = await fetchPostsByCategory(postSlug, page, limit);
     const totalPages = Math.ceil(total / limit);
+   
+     // Calculate the pathname based on the route and page query
+   const pathname = `/${categorySlug}/${postSlug}${page > 1 ? `?page=${page}` : ""}`;
 
     return (
       <>
@@ -346,7 +349,7 @@ export default async function PostOrSubCategoryPage({
       <Seo
           pageType="category"
           categoryTitle={subCategoryTitle}
-          pathname={`/${categorySlug}/${postSlug}`}
+          pathname={pathname}
         />
       <div className="site ">
         {/* Breadcrumbs */}
@@ -552,16 +555,17 @@ export default async function PostOrSubCategoryPage({
     }
   }
 
+   // Calculate the pathname based on the route and page query
+   const pathname = `/${categorySlug}/${postSlug}${page > 1 ? `?page=${page}` : ""}`;
   // Extract plain text content if layout is not available
   const postContent = post.content
     ? extractPlainTextFromRichText(post.content)
     : "";
-
+// Generate keywords from tags
+  const keywords = post.tags?.map((tag) => tag.name).join(", ") || "";
   return (
     <>
-    <Seo pageType="post" postTitle={post.title} 
-    pathname={`/${categorySlug}/${postSlug}`}
-    />
+    <Seo pageType="post" postTitle={post.title} pathname={pathname} keywords={keywords} />
     <div className="site site-main">
       <div className="post-grid lg:grid lg:grid-cols-3 lg:gap-8">
         {/* Main Article Content */}

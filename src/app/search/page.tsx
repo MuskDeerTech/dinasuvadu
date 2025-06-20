@@ -229,9 +229,12 @@ export default async function SearchPage({
 
   return (
    <>
-    <Seo title={`${query} - Dinasuvadu`} 
-    pathname={`/search?s=${encodeURIComponent(query)}`}
-    />
+   <Seo
+  pathname={`/search?s=${encodeURIComponent(query)}${page > 1 ? `&page=${page}` : ""}`}
+  title={`${query} - Dinasuvadu`}
+  pageType="search"
+  searchQuery={query}
+/>
     <div className="site">
       <div className="site-main">
         <h1 className="category-title">Search Results for: {query}</h1>

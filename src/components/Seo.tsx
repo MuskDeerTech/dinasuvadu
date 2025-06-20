@@ -1,19 +1,18 @@
 // components/Seo.tsx
 type SeoProps = {
-  title?: string;
+  title?: string; // Custom title if provided
   description?: string;
   keywords?: string;
   image?: string;
   type?: string;
-  pageType?: "category" | "post" | "tag" | "author" | "default";
-  categoryTitle?: string;
-  postTitle?: string;
-  tagTitle?: string;
-  authorName?: string;
-  pathname?: string;
+  pageType?: "category" | "post" | "tag" | "author" | "default" | "search"; // Added 'search' to pageType
+  categoryTitle?: string; // For category pages
+  postTitle?: string; // For post pages
+  tagTitle?: string; // For tag pages
+  authorName?: string; // For author pages
+  searchQuery?: string; // New prop for search query
+  pathname?: string; // Add pathname as a prop
 };
-
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://dev.dinasuvadu.com";
 
 export default function Seo({
   title,
@@ -26,7 +25,8 @@ export default function Seo({
   postTitle,
   tagTitle,
   authorName,
-  pathname = "/", // Default to "/" if pathname is not provided
+  searchQuery, // New prop to handle search query
+  pathname, // Use pathname prop
 }: SeoProps) {
   // Dynamically generate title based on pageType and provided titles
   let dynamicTitle =
@@ -44,17 +44,18 @@ export default function Seo({
     case "author":
       dynamicTitle = `${authorName || "Author"} - Dinasuvadu`;
       break;
+    case "search":
+      dynamicTitle = `${searchQuery || "Search"} - Dinasuvadu`; // Handle search case
+      break;
     default:
       dynamicTitle = "Dinasuvadu - Tamil News, Breaking News ,தமிழ் செய்திகள்";
   }
 
-  // Ensure pathname starts with a slash and has no trailing slash
-  const normalizedPathname = pathname.startsWith("/") ? pathname : `/${pathname}`;
-  const canonicalUrl = `${baseUrl}${normalizedPathname === "/" ? "" : normalizedPathname}`;
-
   // Define the font URL for preloading
   const fontUrl =
     "https://fonts.gstatic.com/s/muktamalar/v14/MCoRzAXyz8LOE2FpJMxZqI2tKX7pHg.ttf";
+
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://dev.dinasuvadu.com";
 
   return (
     <>
@@ -62,10 +63,16 @@ export default function Seo({
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords} />
       <meta name="robots" content="index, follow" />
-      <link rel="canonical" href={canonicalUrl} />
+      <link
+        rel="canonical"
+        href={`${baseUrl}${pathname || ""}`}
+      />
       <meta property="og:title" content={dynamicTitle} />
       <meta property="og:description" content={description} />
-      <meta property="og:url" content={canonicalUrl} />
+      <meta
+        property="og:url"
+        content={`${baseUrl}${pathname || ""}`}
+      />
       <meta property="og:site_name" content="Dinasuvadu" />
       <meta property="og:type" content={type} />
       <meta property="og:locale" content="ta_IN" />
@@ -81,15 +88,9 @@ export default function Seo({
       <link
         rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Mukta+Malar:wght@200;300;400;500;600;700;800&display=swap"
-        media="all"
+        media="all" // Remove onLoad and set media to "all" by default
       />
-      <link
-        rel="preload"
-        href={fontUrl}
-        as="font"
-        type="font/ttf"
-        crossOrigin="anonymous"
-      />
+      <link rel="preload" href={fontUrl} as="font" type="font/ttf" crossOrigin="anonymous" /> 
     </>
   );
 }

@@ -234,9 +234,11 @@ export default async function AuthorPage({
 
   return (
     <>
-    <Seo pageType="author" authorName={author.name}  
-    pathname={`/authors/${authorSlug}`}
-    />
+    <Seo
+  pathname={`/authors/${authorSlug}${page > 1 ? `?page=${page}` : ""}`}
+  pageType="author"
+  authorName={author.name}
+/>
     <div className="site" >
       <div className="site-main" style={{ marginBottom: "20px" }}>
         <h1

@@ -2,7 +2,9 @@ import Seo from '../../components/Seo'
 export default function AboutUs() {
   return (
     <>
-    <Seo title="About Us - Dinasuvadu" pathname="/about" />
+    <Seo title="About Us - Dinasuvadu"
+    pathname="/about-us"
+     />
     <div className="site">
       <div className="entry-content">
         <p>

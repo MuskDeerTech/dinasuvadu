@@ -393,12 +393,17 @@ export default async function SubCategoryPostPage({
   // Extract plain text content
   const postContent = extractPlainTextFromRichText(post.content);
 
+  const keywords = post.tags?.map((tag) => tag.name).join(", ") || "";
+
   // Render the page
   return (
     <>
-      <Seo pageType="post" postTitle={post.title}
-      pathname={`/${categorySlug}/${postSlug}/${subPostSlug}`}
-       />
+     <Seo
+  pathname={`/${categorySlug}/${postSlug}/${subPostSlug}`}
+  pageType="post"
+  postTitle={post.title}
+  keywords={keywords}
+/>
     <div className="site site-main">
       <div className="post-grid lg:grid lg:grid-cols-3 lg:gap-8">
         {/* Main Article Content */}

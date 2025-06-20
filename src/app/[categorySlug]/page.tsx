@@ -8,7 +8,6 @@ import { notFound } from "next/navigation";
 import ShareButton from "../../components/ShareButton";
 import Seo from "../../components/Seo";
 
-
 // Type definitions
 type Category = {
   id: string;
@@ -192,224 +191,8 @@ function getImageUrl(url: string | undefined): string | null {
   return url.startsWith("http") ? url : `${apiUrl}${url}`;
 }
 
-export default async function CategoryPage({
-  params,
-  searchParams,
-}: {
-  params: Promise<{ categorySlug: string }>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>; // Updated type
-}) {
-  console.log("Entering CategoryPage component for [categorySlug]");
-
-  const { categorySlug } = await params;
-  const query = await searchParams; // Await searchParams
-  const page = parseInt((query.page as string) || "1", 10); // Access the resolved value
-  const limit = 10;
-  console.log(`Handling route: /${categorySlug}?page=${page}`);
-
-  const category = await fetchCategoryBySlug(categorySlug);
-  if (!category) {
-    console.log(`Category ${categorySlug} not found`);
-    notFound();
-  }
-
-  if (category.parent) {
-    console.log(
-      `Category ${categorySlug} has a parent, this route is for top-level categories only.`
-    );
-    notFound();
-  }
-
-  let categoryTitle = category.title || "Uncategorized";
-  if (!category.title) {
-    const fetchedCategory = await fetchCategoryById(category.id);
-    if (fetchedCategory) {
-      categoryTitle = fetchedCategory.title;
-    }
-  }
-
-  const { posts, total } = await fetchPostsByCategory(
-    categorySlug,
-    page,
-    limit
-  );
-  const totalPages = Math.ceil(total / limit);
-
-  return (
-    <>
-      <Seo
-        pageType="category"
-        categoryTitle={categoryTitle}
-        pathname={`/category/${categorySlug}`}
-      />
-    <div className="site">
-      {/* Breadcrumbs */}
-      <nav
-        aria-label="Breadcrumb"
-        className="mb-8 text-sm font-medium text-gray-500 site-main"
-      >
-        <div className="flex items-center space-x-2 breadcrumbs">
-          <Link
-            href="/"
-            className="text-blue-600 hover:text-blue-800 transition-colors"
-          >
-            Home
-          </Link>
-          <span className="text-gray-400">{">"}</span>
-          <span className="text-gray-700">{categoryTitle}</span>
-        </div>
-      </nav>
-
-      {/* Category Header */}
-      <header className="mb-10 site-main">
-        <h1 className="category-title">{categoryTitle}</h1>
-      </header>
-
-      {/* Posts Grid */}
-      {posts.length > 0 ? (
-        <>
-          <div className="category-grid">
-            {posts.map((post) => {
-              const imageUrl = getImageUrl(post.heroImage?.url);
-              const imageAlt = post.heroImage?.alt || post.title;
-
-              return (
-                <article
-                  key={post.id}
-                  className="group block bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg transition-all duration-300"
-                >
-                  <div className="post-item-category api-title bor-1">
-                    <div className="flex-1 site-main">
-                      <Link
-                        href={`/${categorySlug}/${post.slug}`}
-                        className="flex flex-col h-full"
-                      >
-                        <h3 className="post-title-1">{post.title}</h3>
-                        {post.meta?.description && (
-                          <p className="post-description">
-                            {post.meta.description}
-                          </p>
-                        )}
-                      </Link>
-                      <div className="post-first-tag">
-                        {Array.isArray(post.tags) && post.tags.length > 0 && (
-                          <Link href={`/tags/${post.tags[0].slug}`}>
-                            <span className="text-blue-600 hover:underline">
-                              {post.tags[0].name}
-                            </span>
-                          </Link>
-                        )}
-                        {/* <span style={{ marginTop: "4px" }}>
-                            <Space size={4}>
-                              <ClockCircleOutlined
-                                style={{ fontSize: "12px", color: "#8c8c8c" }}
-                              />
-                              <Text
-                                type="secondary"
-                                style={{ fontSize: "12px" }}
-                              >
-                                5 Min Read
-                              </Text>
-                            </Space>
-                          </span> */}
-                        <ShareButton
-                          url={`http://localhost:3001/${categorySlug}/${post.slug}`}
-                          title={post.title}
-                          description={post.meta?.description}
-                        />
-                      </div>
-                    </div>
-                    {/* Image */}
-                    {imageUrl ? (
-                      <Link
-                          href={`/${categorySlug}/${post.slug}`} className="relative w-full h-48 overflow-hidden rounded-t-lg site-main">
-                        <img
-                          src={imageUrl}
-                          alt={imageAlt}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        />
-                      </Link>
-                    ) : (
-                      <div className="w-full h-48 bg-gray-100 rounded-t-lg flex items-center justify-center">
-                        <span className="text-gray-400 text-sm">No Image</span>
-                      </div>
-                    )}
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="web-stories-pagination">
-              {page > 1 && (
-                <Link
-                  href={`/${categorySlug}?page=${page - 1}`}
-                  className="pagination-link"
-                >
-                  Prev
-                </Link>
-              )}
-
-              {/* First Page */}
-              <Link
-                href={`/${categorySlug}?page=1`}
-                className={`pagination-link ${page === 1 ? "active" : ""}`}
-              >
-                1
-              </Link>
-
-              {/* Ellipsis after first page if current page is greater than 2 */}
-              {page > 2 && <span className="pagination-ellipsis">…</span>}
-
-              {/* Current Page (only if it's not the first or last page) */}
-              {page !== 1 && page !== totalPages && (
-                <Link
-                  href={`/${categorySlug}?page=${page}`}
-                  className="pagination-link active"
-                >
-                  {page}
-                </Link>
-              )}
-
-              {/* Ellipsis before last page if current page is less than totalPages - 1 */}
-              {page < totalPages - 1 && (
-                <span className="pagination-ellipsis">…</span>
-              )}
-
-              {/* Last Page (only if totalPages > 1) */}
-              {totalPages > 1 && (
-                <Link
-                  href={`/${categorySlug}?page=${totalPages}`}
-                  className={`pagination-link ${
-                    page === totalPages ? "active" : ""
-                  }`}
-                >
-                  {totalPages}
-                </Link>
-              )}
-
-              {page < totalPages && (
-                <Link
-                  href={`/${categorySlug}?page=${page + 1}`}
-                  className="pagination-link"
-                >
-                  Next
-                </Link>
-              )}
-            </div>
-          )}
-        </>
-      ) : (
-        <p className="text-gray-600 text-center">
-          No posts available in this category.
-        </p>
-      )}
-    </div>
-    </>
-  );
-}
+export const dynamic = "force-static";
+export const revalidate = 60;
 
 export async function generateStaticParams() {
   console.log("Entering generateStaticParams for [categorySlug]");
@@ -453,4 +236,211 @@ export async function generateStaticParams() {
     console.error("Error generating static params:", errorMessage);
     return [];
   }
+}
+
+export default async function CategoryPage({
+  params,
+  searchParams,
+}: {
+  params: { categorySlug: string }; // Resolved type, no Promise
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
+  console.log("Entering CategoryPage component for [categorySlug]");
+
+  const { categorySlug } = params;
+  const query = searchParams;
+  const page = parseInt((query.page as string) || "1", 10);
+  const limit = 10;
+  console.log(`Handling route: /${categorySlug}?page=${page}`);
+
+  const category = await fetchCategoryBySlug(categorySlug);
+  if (!category) {
+    console.log(`Category ${categorySlug} not found`);
+    notFound();
+  }
+
+  if (category.parent) {
+    console.log(
+      `Category ${categorySlug} has a parent, this route is for top-level categories only.`
+    );
+    notFound();
+  }
+
+  let categoryTitle = category.title || "Uncategorized";
+  if (!category.title) {
+    const fetchedCategory = await fetchCategoryById(category.id);
+    if (fetchedCategory) {
+      categoryTitle = fetchedCategory.title;
+    }
+  }
+
+  const { posts, total } = await fetchPostsByCategory(categorySlug, page, limit);
+  const totalPages = Math.ceil(total / limit);
+
+  // Calculate the pathname based on the category slug and page query
+  const pathname = `/${categorySlug}${page > 1 ? `?page=${page}` : ""}`;
+
+  return (
+    <>
+      <Seo
+        pathname={pathname}
+        pageType="category"
+        categoryTitle={categoryTitle}
+      />
+      <div className="site">
+        {/* Breadcrumbs */}
+        <nav
+          aria-label="Breadcrumb"
+          className="mb-8 text-sm font-medium text-gray-500 site-main"
+        >
+          <div className="flex items-center space-x-2 breadcrumbs">
+            <Link
+              href="/"
+              className="text-blue-600 hover:text-blue-800 transition-colors"
+            >
+              Home
+            </Link>
+            <span className="text-gray-400">{">"}</span>
+            <span className="text-gray-700">{categoryTitle}</span>
+          </div>
+        </nav>
+
+        {/* Category Header */}
+        <header className="mb-10 site-main">
+          <h1 className="category-title">{categoryTitle}</h1>
+        </header>
+
+        {/* Posts Grid */}
+        {posts.length > 0 ? (
+          <>
+            <div className="category-grid">
+              {posts.map((post) => {
+                const imageUrl = getImageUrl(post.heroImage?.url);
+                const imageAlt = post.heroImage?.alt || post.title;
+
+                return (
+                  <article
+                    key={post.id}
+                    className="group block bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg transition-all duration-300"
+                  >
+                    <div className="post-item-category api-title bor-1">
+                      <div className="flex-1 site-main">
+                        <Link
+                          href={`/${categorySlug}/${post.slug}`}
+                          className="flex flex-col h-full"
+                        >
+                          <h3 className="post-title-1">{post.title}</h3>
+                          {post.meta?.description && (
+                            <p className="post-description">
+                              {post.meta.description}
+                            </p>
+                          )}
+                        </Link>
+                        <div className="post-first-tag">
+                          {Array.isArray(post.tags) && post.tags.length > 0 && (
+                            <Link href={`/tags/${post.tags[0].slug}`}>
+                              <span className="text-blue-600 hover:underline">
+                                {post.tags[0].name}
+                              </span>
+                            </Link>
+                          )}
+                          <ShareButton
+                            url={`http://localhost:3001/${categorySlug}/${post.slug}`}
+                            title={post.title}
+                            description={post.meta?.description}
+                          />
+                        </div>
+                      </div>
+                      {/* Image */}
+                      {imageUrl ? (
+                        <Link
+                          href={`/${categorySlug}/${post.slug}`}
+                          className="relative w-full h-48 overflow-hidden rounded-t-lg site-main"
+                        >
+                          <img
+                            src={imageUrl}
+                            alt={imageAlt}
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                        </Link>
+                      ) : (
+                        <div className="w-full h-48 bg-gray-100 rounded-t-lg flex items-center justify-center">
+                          <span className="text-gray-400 text-sm">No Image</span>
+                        </div>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="web-stories-pagination">
+                {page > 1 && (
+                  <Link
+                    href={`/${categorySlug}?page=${page - 1}`}
+                    className="pagination-link"
+                  >
+                    Prev
+                  </Link>
+                )}
+
+                {/* First Page */}
+                <Link
+                  href={`/${categorySlug}?page=1`}
+                  className={`pagination-link ${page === 1 ? "active" : ""}`}
+                >
+                  1
+                </Link>
+
+                {/* Ellipsis after first page if current page is greater than 2 */}
+                {page > 2 && <span className="pagination-ellipsis">…</span>}
+
+                {/* Current Page (only if it's not the first or last page) */}
+                {page !== 1 && page !== totalPages && (
+                  <Link
+                    href={`/${categorySlug}?page=${page}`}
+                    className="pagination-link active"
+                  >
+                    {page}
+                  </Link>
+                )}
+
+                {/* Ellipsis before last page if current page is less than totalPages - 1 */}
+                {page < totalPages - 1 && (
+                  <span className="pagination-ellipsis">…</span>
+                )}
+
+                {/* Last Page (only if totalPages > 1) */}
+                {totalPages > 1 && (
+                  <Link
+                    href={`/${categorySlug}?page=${totalPages}`}
+                    className={`pagination-link ${
+                      page === totalPages ? "active" : ""
+                    }`}
+                  >
+                    {totalPages}
+                  </Link>
+                )}
+
+                {page < totalPages && (
+                  <Link
+                    href={`/${categorySlug}?page=${page + 1}`}
+                    className="pagination-link"
+                  >
+                    Next
+                  </Link>
+                )}
+              </div>
+            )}
+          </>
+        ) : (
+          <p className="text-gray-600 text-center">
+            No posts available in this category.
+          </p>
+        )}
+      </div>
+    </>
+  );
 }
