@@ -44,10 +44,54 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const categories = await fetchCategories();
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://dev.dinasuvadu.com";
 
   return (
     <html lang="ta" suppressHydrationWarning>
       <body suppressHydrationWarning>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              url: baseUrl,
+              name: "Dinasuvadu",
+              description: "Tamil News, Breaking News, தமிழ் செய்திகள்",
+              potentialAction: {
+                "@type": "SearchAction",
+                target: `${baseUrl}/search?q={search_term_string}`,
+                "query-input": "required name=search_term_string",
+              },
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "NewsMediaOrganization",
+              name: "Dinasuvadu",
+              url: baseUrl,
+              logo: `${baseUrl}/images/logo.png`, // Update with your logo URL
+              sameAs: [
+                "https://www.facebook.com/dinasuvadu",
+                "https://twitter.com/dinasuvadu",
+                "https://www.instagram.com/dinasuvadu",
+              ], // Update with your social media profiles
+              contactPoint: [
+                {
+                  "@type": "ContactPoint",
+                  telephone: "+91-123-456-7890", // Update with your contact number
+                  contactType: "customer service",
+                  areaServed: "IN",
+                  availableLanguage: ["Tamil", "English"],
+                },
+              ],
+            }),
+          }}
+        />
         <Header categories={categories} />
         {children}
         <Footer />

@@ -395,9 +395,45 @@ export default async function SubCategoryPostPage({
 
   const keywords = post.tags?.map((tag) => tag.name).join(", ") || "";
 
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://dev.dinasuvadu.com";
+  const postUrl = `${baseUrl}/${categorySlug}/${postSlug}/${subPostSlug}`;
+  const imageUrl = getImageUrl(post.heroImage?.url) || `${baseUrl}/images/og-image.jpg`;
+
   // Render the page
   return (
     <>
+    <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "NewsArticle",
+            headline: post.title,
+            image: [imageUrl],
+            datePublished: post.publishedAt,
+            dateModified: post.publishedAt, // Update this if you track modifications
+            author: post.populatedAuthors?.map((author) => ({
+              "@type": "Person",
+              name: author.name,
+            })),
+            publisher: {
+              "@type": "Organization",
+              name: "Dinasuvadu",
+              logo: {
+                "@type": "ImageObject",
+                url: `${baseUrl}/images/logo.png`, // Update with your logo URL
+              },
+            },
+            url: postUrl,
+            mainEntityOfPage: {
+              "@type": "WebPage",
+              "@id": postUrl,
+            },
+            description: post.meta?.description || postContent.substring(0, 160),
+            keywords: keywords,
+          }),
+        }}
+      />
      <Seo
   pathname={`/${categorySlug}/${postSlug}/${subPostSlug}`}
   pageType="post"
