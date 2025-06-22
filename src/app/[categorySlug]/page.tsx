@@ -1,19 +1,15 @@
 import axios from "axios";
 import Link from "next/link";
-// import { Space } from "antd";
-// import { ClockCircleOutlined } from "@ant-design/icons";
-// import Text from "antd/es/typography/Text";
+import Text from "antd/es/typography/Text";
 import "antd/dist/reset.css";
 import { notFound } from "next/navigation";
-import ShareButton from "../../components/ShareButton";
 import Seo from "../../components/Seo";
 
-// Type definitions
-type Category = {
-  id: string;
-  title?: string;
-  slug: string;
-  parent?: { id: string; slug: string; title: string } | string | null;
+// Type definitions (aligned with provided files)
+type Media = {
+  url: string;
+  alt?: string;
+  caption?: string;
 };
 
 type Tag = {
@@ -22,30 +18,42 @@ type Tag = {
   slug: string;
 };
 
+type Author = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
+type Category = {
+  id: string;
+  title?: string;
+  slug: string;
+  parent?: { id: string; slug: string; title: string } | string | null;
+};
+
 type Post = {
   id: string;
   title: string;
   slug: string;
   publishedAt: string;
-  heroImage?: {
-    url: string;
-    alt?: string;
-  };
+  heroImage?: Media;
   meta?: {
     description?: string;
+    image?: Media;
   };
+  categories?: Category[];
+  populatedAuthors?: Author[];
   tags?: Tag[];
-  layout?: {
-    blockType: string;
-    media?: {
-      url: string;
-      alt?: string;
-    };
-  }[];
 };
 
 // API base URL
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+
+// Helper function to get the image URL with proper base URL
+function getImageUrl(url: string | undefined): string | null {
+  if (!url) return null;
+  return url.startsWith("http") ? url : `${apiUrl}${url}`;
+}
 
 // Fetch a category by slug
 async function fetchCategoryBySlug(slug: string): Promise<Category | null> {
@@ -62,84 +70,11 @@ async function fetchCategoryBySlug(slug: string): Promise<Category | null> {
     console.log(`Fetched category ${slug}:`, JSON.stringify(category, null, 2));
     return category;
   } catch (error) {
-    let errorMessage = "";
-    if (typeof error === "object" && error !== null) {
-      if (
-        "response" in error &&
-        typeof (error as any).response?.data !== "undefined"
-      ) {
-        errorMessage = (error as any).response.data;
-      } else if (
-        "message" in error &&
-        typeof (error as any).message === "string"
-      ) {
-        errorMessage = (error as any).message;
-      } else {
-        errorMessage = JSON.stringify(error);
-      }
-    } else {
-      errorMessage = String(error);
-    }
-    console.error(`Error fetching category with slug ${slug}:`, errorMessage);
-    return null;
-  }
-}
-
-// Fetch posts by category slug (using category ID) with pagination
-async function fetchPostsByCategory(
-  categorySlug: string,
-  page: number = 1,
-  limit: number = 10
-): Promise<{ posts: Post[]; total: number }> {
-  try {
-    console.log(`Fetching category ID for slug: ${categorySlug}`);
-    const categoryResponse = await axios.get(
-      `${apiUrl}/api/categories?where[slug][equals]=${categorySlug}&depth=0`
-    );
-    const category = categoryResponse.data.docs[0] || null;
-    if (!category) {
-      console.log(`Category not found for slug: ${categorySlug}`);
-      return { posts: [], total: 0 };
-    }
-    const categoryId = category.id;
-    console.log(`Category ID for ${categorySlug}: ${categoryId}`);
-
-    console.log(
-      `Fetching posts for category ID: ${categoryId}, page: ${page}, limit: ${limit}`
-    );
-    const response = await axios.get(
-      `${apiUrl}/api/posts?where[categories][in]=${categoryId}&sort=-publishedAt&depth=2&limit=${limit}&page=${page}`
-    );
-    const posts = response.data.docs || [];
-    const total = response.data.totalDocs || 0;
-    console.log(
-      `Fetched ${posts.length} posts for category ${categorySlug} (ID: ${categoryId}), total: ${total}`
-    );
-    return { posts, total };
-  } catch (error) {
-    let errorMessage = "";
-    if (typeof error === "object" && error !== null) {
-      if (
-        "response" in error &&
-        typeof (error as any).response?.data !== "undefined"
-      ) {
-        errorMessage = (error as any).response.data;
-      } else if (
-        "message" in error &&
-        typeof (error as any).message === "string"
-      ) {
-        errorMessage = (error as any).message;
-      } else {
-        errorMessage = JSON.stringify(error);
-      }
-    } else {
-      errorMessage = String(error);
-    }
     console.error(
-      "Error fetching posts for category " + categorySlug + ":",
-      errorMessage
+      `Error fetching category with slug ${slug}:`,
+      (error as any).response?.data || (error as any).message
     );
-    return { posts: [], total: 0 };
+    return null;
   }
 }
 
@@ -162,78 +97,61 @@ async function fetchCategoryById(
       title: category.title || "Uncategorized",
     };
   } catch (err) {
-    let errorMessage = "";
-    if (typeof err === "object" && err !== null) {
-      if (
-        "response" in err &&
-        typeof (err as any).response?.data !== "undefined"
-      ) {
-        errorMessage = (err as any).response.data;
-      } else if ("message" in err && typeof (err as any).message === "string") {
-        errorMessage = (err as any).message;
-      } else {
-        errorMessage = JSON.stringify(err);
-      }
-    } else {
-      errorMessage = String(err);
-    }
     console.error(
       `Error fetching category with ID ${categoryId}:`,
-      errorMessage
+      (err as any)?.response?.data || (err as any)?.message
     );
     return null;
   }
 }
 
-// Helper function to get the image URL with proper base URL
-function getImageUrl(url: string | undefined): string | null {
-  if (!url) return null;
-  return url.startsWith("http") ? url : `${apiUrl}${url}`;
+// Fetch posts by category ID with pagination
+async function fetchPostsByCategory(
+  categoryId: string,
+  page: number = 1,
+  limit: number = 10
+): Promise<{ posts: Post[]; total: number }> {
+  try {
+    console.log(
+      `Fetching posts for category ID: ${categoryId}, page: ${page}, limit: ${limit}`
+    );
+    const response = await axios.get(
+      `${apiUrl}/api/posts?where[categories][in]=${categoryId}&sort=-publishedAt&depth=2&limit=${limit}&page=${page}`
+    );
+    const posts = response.data.docs || [];
+    const total = response.data.totalDocs || 0;
+    console.log(
+      `Fetched ${posts.length} posts for category ID ${categoryId}, total: ${total}`
+    );
+    return { posts, total };
+  } catch (error) {
+    console.error(
+      `Error fetching posts for category ID ${categoryId}:`,
+      (error as any).response?.data || (error as any).message
+    );
+    return { posts: [], total: 0 };
+  }
 }
 
-export const dynamic = "force-static";
-export const revalidate = 60;
-
-export async function generateStaticParams() {
-  console.log("Entering generateStaticParams for [categorySlug]");
-
+// Fetch subcategories by parent category ID
+async function fetchSubCategories(
+  parentId: string
+): Promise<Category[]> {
   try {
-    const res = await axios.get(`${apiUrl}/api/categories?limit=1000&depth=2`);
-    const data = await res.data;
-    console.log(`Fetched ${data.docs.length} categories for static generation`);
-
-    const params = [];
-    for (const category of data.docs) {
-      if (!category.parent) {
-        params.push({
-          categorySlug: category.slug,
-        });
-        console.log(`Generated path: ${category.slug}`);
-      }
-    }
-
-    console.log(`Total static params generated: ${params.length}`);
-    return params;
+    console.log(`Fetching subcategories for parent ID: ${parentId}`);
+    const response = await axios.get(
+      `${apiUrl}/api/categories?where[parent][equals]=${parentId}&depth=1&limit=100`
+    );
+    const subCategories = response.data.docs || [];
+    console.log(
+      `Fetched ${subCategories.length} subcategories for parent ID ${parentId}`
+    );
+    return subCategories;
   } catch (error) {
-    let errorMessage = "";
-    if (typeof error === "object" && error !== null) {
-      if (
-        "response" in error &&
-        typeof (error as any).response?.data !== "undefined"
-      ) {
-        errorMessage = (error as any).response.data;
-      } else if (
-        "message" in error &&
-        typeof (error as any).message === "string"
-      ) {
-        errorMessage = (error as any).message;
-      } else {
-        errorMessage = JSON.stringify(error);
-      }
-    } else {
-      errorMessage = String(error);
-    }
-    console.error("Error generating static params:", errorMessage);
+    console.error(
+      `Error fetching subcategories for parent ID ${parentId}:`,
+      (error as any).response?.data || (error as any).message
+    );
     return [];
   }
 }
@@ -242,23 +160,25 @@ export default async function CategoryPage({
   params,
   searchParams,
 }: {
-  params: { categorySlug: string }; // Resolved type, no Promise
-  searchParams: { [key: string]: string | string[] | undefined };
+  params: Promise<{ categorySlug: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
   console.log("Entering CategoryPage component for [categorySlug]");
 
-  const { categorySlug } = params;
-  const query = searchParams;
-  const page = parseInt((query.page as string) || "1", 10);
+  const { categorySlug } = await params;
+  const query = await searchParams;
+  const page = parseInt(query.page || "1", 10);
   const limit = 10;
   console.log(`Handling route: /${categorySlug}?page=${page}`);
 
+  // Fetch the parent category
   const category = await fetchCategoryBySlug(categorySlug);
   if (!category) {
     console.log(`Category ${categorySlug} not found`);
     notFound();
   }
 
+  // Ensure it's a top-level category (no parent)
   if (category.parent) {
     console.log(
       `Category ${categorySlug} has a parent, this route is for top-level categories only.`
@@ -266,6 +186,7 @@ export default async function CategoryPage({
     notFound();
   }
 
+  // Fetch category title
   let categoryTitle = category.title || "Uncategorized";
   if (!category.title) {
     const fetchedCategory = await fetchCategoryById(category.id);
@@ -274,24 +195,52 @@ export default async function CategoryPage({
     }
   }
 
-  const { posts, total } = await fetchPostsByCategory(categorySlug, page, limit);
+  // Fetch posts for the category
+  const { posts, total } = await fetchPostsByCategory(category.id, page, limit);
   const totalPages = Math.ceil(total / limit);
 
-  // Calculate the pathname based on the category slug and page query
+  // Fetch subcategories
+  const subCategories = await fetchSubCategories(category.id);
+
+  // Calculate the pathname
   const pathname = `/${categorySlug}${page > 1 ? `?page=${page}` : ""}`;
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://dev.dinasuvadu.com";
 
   return (
     <>
       <Seo
-        pathname={pathname}
         pageType="category"
         categoryTitle={categoryTitle}
+        pathname={pathname}
       />
-      <div className="site">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            name: categoryTitle,
+            url: `${baseUrl}${pathname}`,
+            description: `Explore the latest posts in ${categoryTitle}`,
+            mainEntity: {
+              "@type": "ItemList",
+              itemListElement: posts.map((post, index) => ({
+                "@type": "ListItem",
+                position: index + 1,
+                name: post.title,
+                url: subCategories.length > 0
+                  ? `${baseUrl}/${categorySlug}/${post.categories?.[0]?.slug || 'uncategorized'}/${post.slug}`
+                  : `${baseUrl}/${categorySlug}/${post.slug}`,
+              })),
+            },
+          }),
+        }}
+      />
+      <div className="site site-main">
         {/* Breadcrumbs */}
         <nav
           aria-label="Breadcrumb"
-          className="mb-8 text-sm font-medium text-gray-500 site-main"
+          className="mb-8 text-sm font-medium text-gray-500"
         >
           <div className="flex items-center space-x-2 breadcrumbs">
             <Link
@@ -306,17 +255,37 @@ export default async function CategoryPage({
         </nav>
 
         {/* Category Header */}
-        <header className="mb-10 site-main">
+        <header className="mb-10">
           <h1 className="category-title">{categoryTitle}</h1>
         </header>
+
+        {/* Subcategories (if any) */}
+        {subCategories.length > 0 && (
+          <section className="mb-12">
+            <h2 className="text-2xl font-semibold mb-6 text-gray-800">Subcategories</h2>
+            <div className="flex flex-wrap gap-4">
+              {subCategories.map((subCategory) => (
+                <Link
+                  key={subCategory.id}
+                  href={`/${categorySlug}/${subCategory.slug}`}
+                  className="inline-block bg-blue-100 text-blue-800 rounded-full px-4 py-2 text-sm font-medium hover:bg-blue-200 transition-colors"
+                >
+                  {subCategory.title || subCategory.slug}
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Posts Grid */}
         {posts.length > 0 ? (
           <>
             <div className="category-grid">
-              {posts.map((post) => {
+              {posts.map((post: Post) => {
                 const imageUrl = getImageUrl(post.heroImage?.url);
                 const imageAlt = post.heroImage?.alt || post.title;
+                const postCategory = post.categories?.[0];
+                const isSubCategory = postCategory?.parent;
 
                 return (
                   <article
@@ -324,9 +293,13 @@ export default async function CategoryPage({
                     className="group block bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg transition-all duration-300"
                   >
                     <div className="post-item-category api-title bor-1">
-                      <div className="flex-1 site-main">
+                      <div className="flex-1">
                         <Link
-                          href={`/${categorySlug}/${post.slug}`}
+                          href={
+                            isSubCategory
+                              ? `/${categorySlug}/${postCategory?.slug || 'uncategorized'}/${post.slug}`
+                              : `/${categorySlug}/${post.slug}`
+                          }
                           className="flex flex-col h-full"
                         >
                           <h3 className="post-title-1">{post.title}</h3>
@@ -337,25 +310,24 @@ export default async function CategoryPage({
                           )}
                         </Link>
                         <div className="post-first-tag">
-                          {Array.isArray(post.tags) && post.tags.length > 0 && (
-                            <Link href={`/tags/${post.tags[0].slug}`}>
+                          {(post.tags ?? []).length > 0 && (
+                            <Link href={`/tags/${(post.tags ?? [])[0].slug}`}>
                               <span className="text-blue-600 hover:underline">
-                                {post.tags[0].name}
+                                {(post.tags ?? [])[0].name}
                               </span>
                             </Link>
                           )}
-                          <ShareButton
-                            url={`http://localhost:3001/${categorySlug}/${post.slug}`}
-                            title={post.title}
-                            description={post.meta?.description}
-                          />
                         </div>
                       </div>
-                      {/* Image */}
+
                       {imageUrl ? (
                         <Link
-                          href={`/${categorySlug}/${post.slug}`}
-                          className="relative w-full h-48 overflow-hidden rounded-t-lg site-main"
+                          href={
+                            isSubCategory
+                              ? `/${categorySlug}/${postCategory?.slug || 'uncategorized'}/${post.slug}`
+                              : `/${categorySlug}/${post.slug}`
+                          }
+                          className="relative w-full h-48 overflow-hidden rounded-t-lg"
                         >
                           <img
                             src={imageUrl}
@@ -376,7 +348,7 @@ export default async function CategoryPage({
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
-              <div className="web-stories-pagination">
+              <div className="flex justify-center space-x-2 mt-8 web-stories-pagination">
                 {page > 1 && (
                   <Link
                     href={`/${categorySlug}?page=${page - 1}`}
@@ -394,10 +366,10 @@ export default async function CategoryPage({
                   1
                 </Link>
 
-                {/* Ellipsis after first page if current page is greater than 2 */}
+                {/* Ellipsis after first page */}
                 {page > 2 && <span className="pagination-ellipsis">…</span>}
 
-                {/* Current Page (only if it's not the first or last page) */}
+                {/* Current Page */}
                 {page !== 1 && page !== totalPages && (
                   <Link
                     href={`/${categorySlug}?page=${page}`}
@@ -407,18 +379,16 @@ export default async function CategoryPage({
                   </Link>
                 )}
 
-                {/* Ellipsis before last page if current page is less than totalPages - 1 */}
+                {/* Ellipsis before last page */}
                 {page < totalPages - 1 && (
                   <span className="pagination-ellipsis">…</span>
                 )}
 
-                {/* Last Page (only if totalPages > 1) */}
+                {/* Last Page */}
                 {totalPages > 1 && (
                   <Link
                     href={`/${categorySlug}?page=${totalPages}`}
-                    className={`pagination-link ${
-                      page === totalPages ? "active" : ""
-                    }`}
+                    className={`pagination-link ${page === totalPages ? "active" : ""}`}
                   >
                     {totalPages}
                   </Link>
@@ -443,4 +413,25 @@ export default async function CategoryPage({
       </div>
     </>
   );
+}
+
+export async function generateStaticParams() {
+  try {
+    console.log("Generating static params for [categorySlug]");
+    const response = await axios.get(`${apiUrl}/api/categories?limit=1000&depth=2`);
+    const categories: Category[] = response.data.docs || [];
+    const params = categories
+      .filter((category) => !category.parent) // Only top-level categories
+      .map((category) => ({
+        categorySlug: category.slug,
+      }));
+    console.log(`Generated ${params.length} static params for top-level categories`);
+    return params;
+  } catch (error) {
+    console.error(
+      "Error generating static params:",
+      (error as any).response?.data || (error as any).message
+    );
+    return [];
+  }
 }

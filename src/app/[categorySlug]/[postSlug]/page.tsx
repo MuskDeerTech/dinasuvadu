@@ -1,5 +1,4 @@
-export const dynamic = "force-static"; // Force static generation where possible
-export const revalidate = 60;
+
 import axios from "axios";
 import Link from "next/link";
 // import { Space } from "antd";
@@ -342,6 +341,8 @@ export default async function PostOrSubCategoryPage({
    
      // Calculate the pathname based on the route and page query
    const pathname = `/${categorySlug}/${postSlug}${page > 1 ? `?page=${page}` : ""}`;
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://dev.dinasuvadu.com";
+
 
     return (
       <>
@@ -351,6 +352,29 @@ export default async function PostOrSubCategoryPage({
           categoryTitle={subCategoryTitle}
           pathname={pathname}
         />
+         <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            name: subCategoryTitle,
+            url: `${baseUrl}${pathname}`,
+            description: `Explore the latest posts in ${subCategoryTitle} on Dinasuvadu.`,
+            mainEntity: {
+              "@type": "ItemList",
+              itemListElement: posts.map((post, index) => ({
+                "@type": "ListItem",
+                position: index + 1,
+                name: post.title,
+                url: `${baseUrl}/${categorySlug}/${postSlug}/${post.slug}`,
+                image: getImageUrl(post.heroImage?.url) || `${baseUrl}/images/og-image.jpg`,
+                description: post.meta?.description || extractPlainTextFromRichText(post.content),
+              })),
+            },
+          }),
+        }}
+      />
       <div className="site ">
         {/* Breadcrumbs */}
         <nav
