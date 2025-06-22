@@ -4,6 +4,7 @@ import Text from "antd/es/typography/Text";
 import "antd/dist/reset.css";
 import { notFound } from "next/navigation";
 import Seo from "../../components/Seo";
+import ShareButton from "../../components/ShareButton";
 
 // Type definitions (aligned with provided files)
 type Media = {
@@ -317,6 +318,11 @@ export default async function CategoryPage({
                               </span>
                             </Link>
                           )}
+                          <ShareButton
+                            url={`${baseUrl}/${categorySlug}/${post.slug}`}
+                            title={post.title}
+                            description={post.meta?.description}
+                          />
                         </div>
                       </div>
 
