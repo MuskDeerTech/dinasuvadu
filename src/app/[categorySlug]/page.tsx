@@ -416,22 +416,22 @@ export default async function CategoryPage({
 }
 
 export async function generateStaticParams() {
+  console.log("Entering generateStaticParams for [categorySlug]");
   try {
-    console.log("Generating static params for [categorySlug]");
-    const response = await axios.get(`${apiUrl}/api/categories?limit=1000&depth=2`);
-    const categories: Category[] = response.data.docs || [];
-    const params = categories
-      .filter((category) => !category.parent) // Only top-level categories
-      .map((category) => ({
+    const res = await axios.get(`${apiUrl}/api/categories?limit=1000&depth=2`);
+    const data = await res.data;
+    console.log(`Fetched ${data.docs.length} categories for static generation`);
+
+    const params = data.docs
+      .filter((category: Category) => !category.parent)
+      .map((category: Category) => ({
         categorySlug: category.slug,
       }));
-    console.log(`Generated ${params.length} static params for top-level categories`);
+
+    console.log(`Total static params generated: ${params.length}`);
     return params;
   } catch (error) {
-    console.error(
-      "Error generating static params:",
-      (error as any).response?.data || (error as any).message
-    );
+    console.error("Error generating static params:", (error as any).response?.data || (error as any).message);
     return [];
   }
 }
