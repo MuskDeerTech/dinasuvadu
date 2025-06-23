@@ -1,4 +1,4 @@
-
+export const revalidate = 60; // Revalidate every 60 seconds
 import axios from "axios";
 import Link from "next/link";
 // import { Space } from "antd";
@@ -1498,14 +1498,13 @@ export async function generateStaticParams() {
           ? await fetchParentCategory(category.parent)
           : category.parent;
         if (parent && parent.slug) {
-          // Fetch total posts to calculate pages
           const { total } = await fetchPostsByCategory(category.id, 1, 10);
           const totalPages = Math.ceil(total / 10);
-          for (let page = 1; page <= totalPages; page++) {
+          for (let page = 1; page <= Math.min(totalPages, 5); page++) { // Limit to 5 pages for now
             params.push({
               categorySlug: parent.slug,
               postSlug: category.slug,
-              page: page.toString(), // Include page as a param if needed
+              page: page.toString(),
             });
             console.log(`Generated path: ${parent.slug}/${category.slug}?page=${page}`);
           }

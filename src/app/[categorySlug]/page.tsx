@@ -1,5 +1,4 @@
-export const dynamic = "force-static"; // Force static generation where possible
-export const revalidate = 60;
+export const revalidate = 60; // Revalidate every 60 seconds
 import axios from "axios";
 import Link from "next/link";
 import Text from "antd/es/typography/Text";
