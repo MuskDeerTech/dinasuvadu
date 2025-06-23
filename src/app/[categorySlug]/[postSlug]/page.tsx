@@ -941,46 +941,34 @@ export default async function PostOrSubCategoryPage({
 }
 
 export async function generateStaticParams() {
-  console.log("Entering generateStaticParams for [categorySlug]/[postSlug]");
   const params: { categorySlug: string; postSlug: string }[] = [];
-
   try {
-    // Fetch all categories for sub-categories
     const categoryRes = await axios.get(`${apiUrl}/api/categories?limit=1000&depth=2`);
     const categories: Category[] = categoryRes.data.docs || [];
-    console.log(`Fetched ${categories.length} categories`);
-
     for (const category of categories) {
-      if (category.parent) {
-        const parent = typeof category.parent === "string"
-          ? await fetchParentCategory(category.parent)
-          : category.parent;
-        if (parent && parent.slug) {
-          params.push({
-            categorySlug: parent.slug,
-            postSlug: category.slug,
-          });
-          console.log(`Generated subcategory path: ${parent.slug}/${category.slug}`);
+      if (category.slug) {
+        params.push({ categorySlug: category.slug, postSlug: category.slug }); // For category pages
+        if (category.parent) {
+          const parent = typeof category.parent === "string" ? await fetchParentCategory(category.parent) : category.parent;
+          if (parent && parent.slug) {
+            params.push({ categorySlug: parent.slug, postSlug: category.slug }); // For subcategories
+          }
         }
       }
     }
-
-    // Fetch all posts for direct post routes
     const postRes = await axios.get(`${apiUrl}/api/posts?limit=1000&depth=3`);
     const posts: Post[] = postRes.data.docs || [];
-    console.log(`Fetched ${posts.length} posts for static generation`);
-
     for (const post of posts) {
       const category = post.categories?.[0];
-      if (category && !category.parent) {
-        params.push({
-          categorySlug: category.slug,
-          postSlug: post.slug,
-        });
-        console.log(`Generated post path: ${category.slug}/${post.slug}`);
+      if (category) {
+        let categorySlug = category.slug || "uncategorized";
+        if (category.parent) {
+          const parent = typeof category.parent === "string" ? await fetchParentCategory(category.parent) : category.parent;
+          if (parent && parent.slug) categorySlug = parent.slug;
+        }
+        params.push({ categorySlug, postSlug: post.slug });
       }
     }
-
     console.log(`Total static params generated: ${params.length}`);
     return params;
   } catch (error) {
