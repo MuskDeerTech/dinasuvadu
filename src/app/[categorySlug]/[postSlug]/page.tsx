@@ -1,4 +1,5 @@
-
+export const dynamic = "force-static"; // Force static generation where possible
+export const revalidate = 60;
 import axios from "axios";
 import Link from "next/link";
 // import { Space } from "antd";
@@ -338,43 +339,10 @@ export default async function PostOrSubCategoryPage({
 
     const { posts, total } = await fetchPostsByCategory(postSlug, page, limit);
     const totalPages = Math.ceil(total / limit);
-   
-     // Calculate the pathname based on the route and page query
-   const pathname = `/${categorySlug}/${postSlug}${page > 1 ? `?page=${page}` : ""}`;
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://dev.dinasuvadu.com";
-
 
     return (
       <>
-      
-      <Seo
-          pageType="category"
-          categoryTitle={subCategoryTitle}
-          pathname={pathname}
-        />
-         <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "CollectionPage",
-            name: subCategoryTitle,
-            url: `${baseUrl}${pathname}`,
-            description: `Explore the latest posts in ${subCategoryTitle} on Dinasuvadu.`,
-            mainEntity: {
-              "@type": "ItemList",
-              itemListElement: posts.map((post, index) => ({
-                "@type": "ListItem",
-                position: index + 1,
-                name: post.title,
-                url: `${baseUrl}/${categorySlug}/${postSlug}/${post.slug}`,
-                image: getImageUrl(post.heroImage?.url) || `${baseUrl}/images/og-image.jpg`,
-                description: post.meta?.description || extractPlainTextFromRichText(post.content),
-              })),
-            },
-          }),
-        }}
-      />
+       <Seo pageType="category" categoryTitle={subCategoryTitle} />
       <div className="site ">
         {/* Breadcrumbs */}
         <nav
@@ -579,55 +547,14 @@ export default async function PostOrSubCategoryPage({
     }
   }
 
-   // Calculate the pathname based on the route and page query
-   const pathname = `/${categorySlug}/${postSlug}${page > 1 ? `?page=${page}` : ""}`;
   // Extract plain text content if layout is not available
   const postContent = post.content
     ? extractPlainTextFromRichText(post.content)
     : "";
-// Generate keywords from tags
-  const keywords = post.tags?.map((tag) => tag.name).join(", ") || "";
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://dev.dinasuvadu.com";
-  const postUrl = `${baseUrl}/${categorySlug}/${postSlug}`;
-  const imageUrl = getImageUrl(post.heroImage?.url || post.layout?.[0]?.media?.url) || `${baseUrl}/images/og-image.jpg`;
   return (
     <>
-    {post && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "NewsArticle",
-              headline: post.title,
-              image: [imageUrl],
-              datePublished: post.publishedAt,
-              dateModified: post.publishedAt, // Update this if you track modifications
-              author: post.populatedAuthors?.map((author) => ({
-                "@type": "Person",
-                name: author.name,
-              })),
-              publisher: {
-                "@type": "Organization",
-                name: "Dinasuvadu",
-                logo: {
-                  "@type": "ImageObject",
-                  url: `${baseUrl}/images/logo.png`, // Update with your logo URL
-                },
-              },
-              url: postUrl,
-              mainEntityOfPage: {
-                "@type": "WebPage",
-                "@id": postUrl,
-              },
-              description: post.meta?.description || postContent.substring(0, 160),
-              keywords: keywords,
-            }),
-          }}
-        />
-      )}
-    <Seo pageType="post" postTitle={post.title} pathname={pathname} keywords={keywords} />
+    <Seo pageType="post" postTitle={post.title} />
     <div className="site site-main">
       <div className="post-grid lg:grid lg:grid-cols-3 lg:gap-8">
         {/* Main Article Content */}
@@ -1485,46 +1412,34 @@ export default async function PostOrSubCategoryPage({
 }
 
 export async function generateStaticParams() {
-  console.log("Entering generateStaticParams for [categorySlug]/[postSlug]");
   const params: { categorySlug: string; postSlug: string }[] = [];
-
   try {
-    // Fetch all categories for sub-categories
     const categoryRes = await axios.get(`${apiUrl}/api/categories?limit=1000&depth=2`);
     const categories: Category[] = categoryRes.data.docs || [];
-    console.log(`Fetched ${categories.length} categories`);
-
     for (const category of categories) {
-      if (category.parent) {
-        const parent = typeof category.parent === "string"
-          ? await fetchParentCategory(category.parent)
-          : category.parent;
-        if (parent && parent.slug) {
-          params.push({
-            categorySlug: parent.slug,
-            postSlug: category.slug,
-          });
-          console.log(`Generated subcategory path: ${parent.slug}/${category.slug}`);
+      if (category.slug) {
+        params.push({ categorySlug: category.slug, postSlug: category.slug }); // For category pages
+        if (category.parent) {
+          const parent = typeof category.parent === "string" ? await fetchParentCategory(category.parent) : category.parent;
+          if (parent && parent.slug) {
+            params.push({ categorySlug: parent.slug, postSlug: category.slug }); // For subcategories
+          }
         }
       }
     }
-
-    // Fetch all posts for direct post routes
     const postRes = await axios.get(`${apiUrl}/api/posts?limit=1000&depth=3`);
     const posts: Post[] = postRes.data.docs || [];
-    console.log(`Fetched ${posts.length} posts for static generation`);
-
     for (const post of posts) {
       const category = post.categories?.[0];
-      if (category && !category.parent) {
-        params.push({
-          categorySlug: category.slug,
-          postSlug: post.slug,
-        });
-        console.log(`Generated post path: ${category.slug}/${post.slug}`);
+      if (category) {
+        let categorySlug = category.slug || "uncategorized";
+        if (category.parent) {
+          const parent = typeof category.parent === "string" ? await fetchParentCategory(category.parent) : category.parent;
+          if (parent && parent.slug) categorySlug = parent.slug;
+        }
+        params.push({ categorySlug, postSlug: post.slug });
       }
     }
-
     console.log(`Total static params generated: ${params.length}`);
     return params;
   } catch (error) {
