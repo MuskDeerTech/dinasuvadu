@@ -123,7 +123,7 @@ export default function Header({ categories }: HeaderProps) {
             </button>
             <Link href="/" className="logo-link">
               <img            
-                src="./dinasuvadu.svg"
+                src="/dinasuvadu.svg"
                 alt="Dinasuvadu Logo"
                 className="logo"
               />

@@ -1,8 +1,7 @@
+
+export const revalidate = 10;
 import axios from "axios";
 import Link from "next/link";
-// import { Space } from "antd";
-// import { ClockCircleOutlined } from "@ant-design/icons";
-// import Text from "antd/es/typography/Text";
 import "antd/dist/reset.css"; // Import Ant Design CSS
 import ShareButton from "../../../components/ShareButton";
 import Seo from "../../../components/Seo";
@@ -65,26 +64,8 @@ async function fetchTags(): Promise<Tag[]> {
     const res = await axios.get(`${apiUrl}/api/tags?depth=1`, {
       timeout: 10000,
     });
-    const tags = res.data.docs || [];
-    console.log("Fetched tags:", tags);
-    return tags;
+    return res.data.docs || [];
   } catch (err) {
-    if (
-      err &&
-      typeof err === "object" &&
-      "response" in err &&
-      err.response &&
-      typeof err.response === "object" &&
-      "data" in err.response
-    ) {
-      // @ts-ignore
-      console.error("Error fetching tags:", err.response.data);
-    } else if (err && typeof err === "object" && "message" in err) {
-      // @ts-ignore
-      console.error("Error fetching tags:", err.message);
-    } else {
-      console.error("Error fetching tags:", err);
-    }
     return [];
   }
 }
@@ -95,33 +76,8 @@ async function fetchTagBySlug(slug: string): Promise<Tag | null> {
       `${apiUrl}/api/tags?where[slug][equals]=${slug}&depth=1`,
       { timeout: 10000 }
     );
-    const tag = res.data.docs[0] || null;
-    if (!tag) {
-      console.log(`No tag found for slug: ${slug}`);
-    }
-    return tag;
+    return res.data.docs[0] || null;
   } catch (err) {
-    if (err && typeof err === "object") {
-      if (
-        "response" in err &&
-        err.response &&
-        typeof err.response === "object" &&
-        "data" in err.response
-      ) {
-        // @ts-ignore
-        console.error(
-          `Error fetching tag with slug ${slug}:`,
-          err.response.data
-        );
-      } else if ("message" in err) {
-        // @ts-ignore
-        console.error(`Error fetching tag with slug ${slug}:`, err.message);
-      } else {
-        console.error(`Error fetching tag with slug ${slug}:`, err);
-      }
-    } else {
-      console.error(`Error fetching tag with slug ${slug}:`, err);
-    }
     return null;
   }
 }
@@ -136,34 +92,11 @@ async function fetchPostsByTag(
       `${apiUrl}/api/posts?limit=${limit}&page=${page}&depth=3&where[tags][contains]=${tagId}`,
       { timeout: 10000 }
     );
-    console.log(
-      `Fetched ${res.data.docs.length} posts for tag ID ${tagId}, page: ${page}, limit: ${limit}`
-    );
     return {
       posts: res.data.docs || [],
       total: res.data.totalDocs || 0,
     };
   } catch (err) {
-    let errorMessage = "";
-    if (err && typeof err === "object") {
-      if (
-        "response" in err &&
-        err.response &&
-        typeof err.response === "object" &&
-        "data" in err.response
-      ) {
-        // @ts-ignore
-        errorMessage = err.response.data;
-      } else if ("message" in err) {
-        // @ts-ignore
-        errorMessage = err.message;
-      } else {
-        errorMessage = JSON.stringify(err);
-      }
-    } else {
-      errorMessage = String(err);
-    }
-    console.error(`Error fetching posts for tag ID ${tagId}:`, errorMessage);
     return { posts: [], total: 0 };
   }
 }
@@ -178,39 +111,13 @@ async function fetchParentCategory(
         timeout: 10000,
       }
     );
-    const parentCategory = res.data || null;
-    if (!parentCategory) {
-      console.log(`No parent category found for ID: ${parentId}`);
-      return null;
-    }
-    return {
-      slug: parentCategory.slug || "uncategorized",
-      title: parentCategory.title || "Uncategorized",
-    };
+    return res.data
+      ? {
+          slug: res.data.slug || "uncategorized",
+          title: res.data.title || "Uncategorized",
+        }
+      : null;
   } catch (err) {
-    let errorMessage = "";
-    if (err && typeof err === "object") {
-      if (
-        "response" in err &&
-        err.response &&
-        typeof err.response === "object" &&
-        "data" in err.response
-      ) {
-        // @ts-ignore
-        errorMessage = err.response.data;
-      } else if ("message" in err) {
-        // @ts-ignore
-        errorMessage = err.message;
-      } else {
-        errorMessage = JSON.stringify(err);
-      }
-    } else {
-      errorMessage = String(err);
-    }
-    console.error(
-      `Error fetching parent category with ID ${parentId}:`,
-      errorMessage
-    );
     return null;
   }
 }
@@ -237,186 +144,164 @@ export default async function TagPage({
   const totalPages = Math.ceil(total / limit);
 
   return (
-   <>
-    <Seo
-  pathname={`/tags/${tagSlug}${page > 1 ? `?page=${page}` : ""}`}
-  pageType="tag"
-  tagTitle={tag.name}
-/>
-    <div className="site">
-      <div className="site-main">
-        <h1 className="category-title">Tag: {tag.name}</h1>{" "}
-        {/* Changed tag.title to tag.name */}
-      </div>
+    <>
+      <Seo
+        pathname={`/tags/${tagSlug}${page > 1 ? `?page=${page}` : ""}`}
+        pageType="tag"
+        tagTitle={tag.name}
+      />
+      <div className="site">
+        <div className="site-main">
+          <h1 className="category-title">Tag: {tag.name}</h1>
+        </div>
 
-      {posts.length === 0 ? (
-        <p className="text-gray-500">No posts found for this tag.</p>
-      ) : (
-        <>
-          <div className="category-grid">
-            {await Promise.all(
-              posts.map(async (post) => {
-                // const mediaBlock = post.layout?.find(
-                //   (block) => block.blockType === "mediaBlock"
-                // );
-                const imageUrl = getImageUrl(post.heroImage?.url);
-                const imageAlt = post.heroImage?.alt || post.title;
+        {posts.length === 0 ? (
+          <p className="text-gray-500">No posts found for this tag.</p>
+        ) : (
+          <>
+            <div className="category-grid">
+              {await Promise.all(
+                posts.map(async (post) => {
+                  const imageUrl = getImageUrl(post.heroImage?.url);
+                  const imageAlt = post.heroImage?.alt || post.title;
 
-                const category = post.categories?.[0];
-                const categorySlug = category?.slug || "uncategorized";
-                // const categoryTitle = category?.title || "Uncategorized";
+                  const category = post.categories?.[0];
+                  const categorySlug = category?.slug || "uncategorized";
 
-                let postUrl = `/${categorySlug}/${post.slug}`; // Default for top-level category
-                if (category?.parent) {
-                  const parent =
-                    typeof category.parent === "string"
-                      ? await fetchParentCategory(category.parent)
-                      : category.parent;
-                  if (parent) {
-                    postUrl = `/${parent.slug}/${categorySlug}/${post.slug}`; // For subcategory
+                  let postUrl = `/${categorySlug}/${post.slug}`;
+                  if (category?.parent) {
+                    const parent =
+                      typeof category.parent === "string"
+                        ? await fetchParentCategory(category.parent)
+                        : category.parent;
+                    if (parent) {
+                      postUrl = `/${parent.slug}/${categorySlug}/${post.slug}`;
+                    }
                   }
-                }
 
-                return (
-                  <article
-                    key={post.id}
-                    className="flex flex-col md:flex-row gap-4 border-b pb-6 hover:bg-gray-50 transition"
-                  >
-                    <div className="post-item-category api-title bor-1">
-                      <div className="flex-1 site-main">
-                        {/* Wrap only the title and description in the Link */}
-                        <Link href={postUrl} className="flex flex-col h-full">
-                          <h3 className="post-title-1">{post.title}</h3>
-                          {post.meta?.description && (
-                            <p className="post-description">
-                              {post.meta.description}
-                            </p>
-                          )}
-                        </Link>
-                        <div className="post-first-tag">
-                          {(post.tags ?? []).length > 0 && (
-                            <Link href={`/tags/${post.tags![0].slug}`}>
-                              <span className="text-blue-600 hover:underline">
-                                {post.tags![0].name}
-                              </span>
-                            </Link>
-                          )}
-                          <ShareButton
-                            url={`${baseUrl}${postUrl}`}
-                            title={post.title}
-                            description={post.meta?.description}
-                          />
+                  return (
+                    <article
+                      key={post.id}
+                      className="flex flex-col md:flex-row gap-4 border-b pb-6 hover:bg-gray-50 transition"
+                    >
+                      <div className="post-item-category api-title bor-1">
+                        <div className="flex-1 site-main">
+                          <Link href={postUrl} className="flex flex-col h-full">
+                            <h3 className="post-title-1">{post.title}</h3>
+                            {post.meta?.description && (
+                              <p className="post-description">
+                                {post.meta.description}
+                              </p>
+                            )}
+                          </Link>
+                          <div className="post-first-tag">
+                            {(post.tags ?? []).length > 0 && (
+                              <Link href={`/tags/${post.tags![0].slug}`}>
+                                <span className="text-blue-600 hover:underline">
+                                  {post.tags![0].name}
+                                </span>
+                              </Link>
+                            )}
+                            <ShareButton
+                              url={`${baseUrl}${postUrl}`}
+                              title={post.title}
+                              description={post.meta?.description}
+                            />
+                          </div>
                         </div>
+                        {imageUrl ? (
+                          <Link
+                            href={postUrl}
+                            className="relative w-full h-48 overflow-hidden rounded-t-lg site-main"
+                          >
+                            <img
+                              src={imageUrl}
+                              alt={imageAlt}
+                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            />
+                          </Link>
+                        ) : (
+                          <div className="w-full h-48 bg-gray-100 rounded-t-lg flex items-center justify-center">
+                            <span className="text-gray-400 text-sm">
+                              No Image
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      {/* Image */}
-                      {imageUrl ? (
-                        <Link
-                          href={postUrl}
-                          className="relative w-full h-48 overflow-hidden rounded-t-lg site-main"
-                        >
-                          <img
-                            src={imageUrl}
-                            alt={imageAlt}
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          />
-                        </Link>
-                      ) : (
-                        <div className="w-full h-48 bg-gray-100 rounded-t-lg flex items-center justify-center">
-                          <span className="text-gray-400 text-sm">
-                            No Image
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </article>
-                );
-              })
-            )}
-          </div>
-
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex justify-center space-x-2 mt-8 web-stories-pagination">
-              {page > 1 && (
-                <Link
-                  href={`/tags/${tagSlug}?page=${page - 1}`}
-                  className="pagination-link"
-                >
-                  Prev
-                </Link>
-              )}
-
-              {/* First Page */}
-              <Link
-                href={`/tags/${tagSlug}?page=1`}
-                className={`pagination-link ${page === 1 ? "active" : ""}`}
-              >
-                1
-              </Link>
-
-              {/* Ellipsis after first page if current page is greater than 2 */}
-              {page > 2 && <span className="pagination-ellipsis">…</span>}
-
-              {/* Current Page (only if it's not the first or last page) */}
-              {page !== 1 && page !== totalPages && (
-                <Link
-                  href={`/tags/${tagSlug}?page=${page}`}
-                  className="pagination-link active"
-                >
-                  {page}
-                </Link>
-              )}
-
-              {/* Ellipsis before last page if current page is less than totalPages - 1 */}
-              {page < totalPages - 1 && (
-                <span className="pagination-ellipsis">…</span>
-              )}
-
-              {/* Last Page (only if totalPages > 1) */}
-              {totalPages > 1 && (
-                <Link
-                  href={`/tags/${tagSlug}?page=${totalPages}`}
-                  className={`pagination-link ${
-                    page === totalPages ? "active" : ""
-                  }`}
-                >
-                  {totalPages}
-                </Link>
-              )}
-
-              {page < totalPages && (
-                <Link
-                  href={`/tags/${tagSlug}?page=${page + 1}`}
-                  className="pagination-link"
-                >
-                  Next
-                </Link>
+                    </article>
+                  );
+                })
               )}
             </div>
-          )}
-        </>
-      )}
-    </div>
-   </>
+
+            {totalPages > 1 && (
+              <div className="flex justify-center space-x-2 mt-8 web-stories-pagination">
+                {page > 1 && (
+                  <Link
+                    href={`/tags/${tagSlug}?page=${page - 1}`}
+                    className="pagination-link"
+                  >
+                    Prev
+                  </Link>
+                )}
+
+                <Link
+                  href={`/tags/${tagSlug}?page=1`}
+                  className={`pagination-link ${page === 1 ? "active" : ""}`}
+                >
+                  1
+                </Link>
+
+                {page > 2 && <span className="pagination-ellipsis">…</span>}
+
+                {page !== 1 && page !== totalPages && (
+                  <Link
+                    href={`/tags/${tagSlug}?page=${page}`}
+                    className="pagination-link active"
+                  >
+                    {page}
+                  </Link>
+                )}
+
+                {page < totalPages - 1 && (
+                  <span className="pagination-ellipsis">…</span>
+                )}
+
+                {totalPages > 1 && (
+                  <Link
+                    href={`/tags/${tagSlug}?page=${totalPages}`}
+                    className={`pagination-link ${
+                      page === totalPages ? "active" : ""
+                    }`}
+                  >
+                    {totalPages}
+                  </Link>
+                )}
+
+                {page < totalPages && (
+                  <Link
+                    href={`/tags/${tagSlug}?page=${page + 1}`}
+                    className="pagination-link"
+                  >
+                    Next
+                  </Link>
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </>
   );
 }
 
 export async function generateStaticParams() {
   const tags = await fetchTags();
   const validTags = tags.filter((tag: Tag) => {
-    if (!tag.slug || typeof tag.slug !== "string") {
-      console.warn(`Skipping tag with invalid slug:`, tag);
-      return false;
-    }
-    return true;
+    return tag.slug && typeof tag.slug === "string";
   });
 
-  const params = validTags.map((tag: Tag) => ({
+  return validTags.map((tag: Tag) => ({
     tagSlug: tag.slug,
   }));
-  console.log(
-    `Generated static params for ${params.length} tags:`,
-    JSON.stringify(params, null, 2)
-  );
-  return params;
 }

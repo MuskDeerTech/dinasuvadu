@@ -4,9 +4,9 @@ export const dynamic = 'force-dynamic'; // Ensures the route is dynamic and not 
 function escapeXml(unsafe: string): string {
   if (!unsafe) return '';
   return unsafe
-    .replace(/&/g, '&')
-    .replace(/</g, '<')
-    .replace(/>/g, '>')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&apos;');
 }
@@ -38,7 +38,6 @@ async function fetchCategoryById(categoryId: string): Promise<{ slug: string; ti
     });
 
     if (!response.ok) {
-      console.error(`Failed to fetch category ${categoryId}: ${response.status} ${response.statusText}`);
       return null;
     }
 
@@ -49,7 +48,6 @@ async function fetchCategoryById(categoryId: string): Promise<{ slug: string; ti
       parent: category.parent || null,
     };
   } catch (error) {
-    console.error(`Error fetching category ${categoryId}:`, error);
     return null;
   }
 }
@@ -67,7 +65,6 @@ async function fetchParentCategory(parentId: string): Promise<{ slug: string; ti
     });
 
     if (!response.ok) {
-      console.error(`Failed to fetch parent category ${parentId}: ${response.status} ${response.statusText}`);
       return null;
     }
 
@@ -77,7 +74,6 @@ async function fetchParentCategory(parentId: string): Promise<{ slug: string; ti
       title: parentCategory.title || 'Uncategorized',
     };
   } catch (error) {
-    console.error(`Error fetching parent category ${parentId}:`, error);
     return null;
   }
 }
@@ -86,13 +82,11 @@ async function fetchParentCategory(parentId: string): Promise<{ slug: string; ti
 async function getPostUrl(post: any, baseUrl: string): Promise<string> {
   const category = post.categories?.[0];
   if (!category) {
-    console.warn(`Post ${post.slug} has no category, using default 'uncategorized'`);
     return `${baseUrl}/uncategorized/${post.slug}`;
   }
 
   const categoryDetails = await fetchCategoryById(category.id);
   if (!categoryDetails) {
-    console.warn(`Category not found for post ${post.slug}, using default 'uncategorized'`);
     return `${baseUrl}/uncategorized/${post.slug}`;
   }
 
@@ -100,7 +94,6 @@ async function getPostUrl(post: any, baseUrl: string): Promise<string> {
     const parentId = typeof categoryDetails.parent === 'string' ? categoryDetails.parent : categoryDetails.parent.id;
     const parentCategory = await fetchParentCategory(parentId);
     if (!parentCategory) {
-      console.warn(`Parent category not found for category ${categoryDetails.slug}, treating as top-level`);
       return `${baseUrl}/${categoryDetails.slug}/${post.slug}`;
     }
     return `${baseUrl}/${parentCategory.slug}/${categoryDetails.slug}/${post.slug}`;
@@ -115,7 +108,6 @@ export async function GET() {
 
   // Fetch the most recent 50 published posts from Payload CMS API
   const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/posts?limit=50&sort=-publishedAt&where[_status][equals]=published&depth=2`;
-  console.log('Fetching posts for RSS feed from:', apiUrl);
 
   let allPosts = [];
   try {
@@ -124,25 +116,20 @@ export async function GET() {
       headers: {
         'Content-Type': 'application/json',
       },
-      cache: 'no-store', // Prevent caching issues
+      cache: 'no-store',
     });
 
     if (!response.ok) {
-      console.error('API response not OK:', response.status, response.statusText);
       throw new Error(`Failed to fetch posts: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
-    console.log('Raw API Response:', JSON.stringify(data, null, 2));
     allPosts = data.docs || [];
-    console.log('Total posts fetched for RSS:', allPosts.length);
 
     if (allPosts.length === 0) {
-      console.warn('No posts returned from API');
       return new Response('No published posts available', { status: 404 });
     }
   } catch (error) {
-    console.error('Error fetching posts for RSS:', error);
     return new Response(`Error fetching posts: ${error instanceof Error ? error.message : 'Unknown error'}`, { status: 500 });
   }
 
@@ -156,7 +143,6 @@ export async function GET() {
   );
 
   if (filteredPosts.length === 0) {
-    console.warn('No posts passed the filter criteria');
     return new Response('No valid posts available for RSS feed', { status: 404 });
   }
 
@@ -192,19 +178,13 @@ export async function GET() {
       <height>32</height>
     </image>
     ${await Promise.all(filteredPosts.map(async (post: any) => {
-      // Extract author name (assuming author is a relationship field with a name)
       const authorName = post.populatedAuthors?.[0]?.name || 'Dinasuvadu Team';
-      // Extract categories (assuming categories is an array of objects with a name field)
       const categories = Array.isArray(post.categories) ? post.categories.map((cat: any) => cat.name || cat.title).filter(Boolean) : [];
-      // Extract image URL (assuming heroImage or meta.image is available)
       const imageUrl = post.heroImage?.url || post.meta?.image?.url || null;
       const fullImageUrl = imageUrl ? (imageUrl.startsWith('http') ? imageUrl : `${baseUrl}${imageUrl}`) : null;
       const imageAlt = post.heroImage?.alt || post.meta?.image?.alt || post.title;
-      // Extract post content (assuming content field exists with richText structure)
       const postContent = post.content ? extractPlainTextFromRichText(post.content) : (post.meta?.description || '');
-      // Create a short description (truncate content to ~200 characters for the description)
       const shortDescription = postContent.length > 200 ? postContent.substring(0, 200) + '...' : postContent;
-      // Get the correct post URL based on category
       const postUrl = await getPostUrl(post, baseUrl);
 
       return `

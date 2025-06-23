@@ -17,23 +17,8 @@ async function fetchCategories(): Promise<Category[]> {
   try {
     const res = await axios.get(`${apiUrl}/api/categories?depth=2`);
     const categories = res.data.docs || [];
-    console.log("Fetched categories for layout:", categories);
     return categories;
   } catch (err) {
-    if (
-      err &&
-      typeof err === "object" &&
-      "response" in err &&
-      err.response &&
-      typeof err.response === "object" &&
-      "data" in err.response
-    ) {
-      console.error("Error fetching categories for layout:", err.response.data);
-    } else if (err instanceof Error) {
-      console.error("Error fetching categories for layout:", err.message);
-    } else {
-      console.error("Error fetching categories for layout:", err);
-    }
     return [];
   }
 }
@@ -74,16 +59,16 @@ export default async function RootLayout({
               "@type": "NewsMediaOrganization",
               name: "Dinasuvadu",
               url: baseUrl,
-              logo: `${baseUrl}/images/logo.png`, // Update with your logo URL
+              logo: `${baseUrl}/images/logo.png`,
               sameAs: [
                 "https://www.facebook.com/dinasuvadu",
                 "https://twitter.com/dinasuvadu",
                 "https://www.instagram.com/dinasuvadu",
-              ], // Update with your social media profiles
+              ],
               contactPoint: [
                 {
                   "@type": "ContactPoint",
-                  telephone: "+91-123-456-7890", // Update with your contact number
+                  telephone: "+91-123-456-7890",
                   contactType: "customer service",
                   areaServed: "IN",
                   availableLanguage: ["Tamil", "English"],

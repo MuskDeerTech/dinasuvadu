@@ -1,4 +1,3 @@
-// D:\All Websites\dinacms\dinasuvadu\src\app\sitemap_index\route.ts
 export const dynamic = 'force-dynamic'; // Ensures the route is dynamic and not cached indefinitely
 
 export async function GET() {
@@ -10,7 +9,6 @@ export async function GET() {
 
   // Fetch all published posts from Payload CMS API
   const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/posts?limit=1000&sort=-publishedAt&where[_status][equals]=published&depth=0`;
-  console.log('Fetching all posts from:', apiUrl);
 
   let allPosts = [];
   try {
@@ -27,11 +25,8 @@ export async function GET() {
     }
 
     const data = await response.json();
-    console.log('Raw API Response:', JSON.stringify(data, null, 2)); // Log the full response for debugging
     allPosts = data.docs || [];
-    console.log('Total posts fetched:', allPosts.length);
   } catch (error) {
-    console.error('Error fetching posts:', error);
     return new Response('Error fetching posts', { status: 500 });
   }
 
@@ -43,7 +38,6 @@ export async function GET() {
 
   // Calculate the total number of sitemap files needed
   const totalSitemaps = Math.ceil(allPosts.length / postsPerPage);
-  console.log('Total sitemap files needed:', totalSitemaps);
 
   // Generate sitemap index entries
   const sitemapEntries = [];

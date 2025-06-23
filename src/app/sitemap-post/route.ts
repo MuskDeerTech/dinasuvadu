@@ -20,18 +20,15 @@ async function fetchCategoryBySlug(slug: string): Promise<{ id: string; slug: st
     });
 
     if (!response.ok) {
-      console.error(`Failed to fetch category ${slug}: ${response.status} ${response.statusText}`);
       return null;
     }
 
     const data = await response.json();
     const category = data.docs?.[0];
     if (!category) {
-      console.warn(`No category found for slug: ${slug}`);
       return null;
     }
 
-    console.log(`Fetched category ${slug}:`, JSON.stringify(category, null, 2));
     const result = {
       id: category.id,
       slug: category.slug || slug,
@@ -41,7 +38,6 @@ async function fetchCategoryBySlug(slug: string): Promise<{ id: string; slug: st
     categoryCache.set(slug, result);
     return result;
   } catch (error) {
-    console.error(`Error fetching category ${slug}:`, error);
     return null;
   }
 }
@@ -66,13 +62,10 @@ async function fetchParentCategory(parentId: string): Promise<{ slug: string } |
     });
 
     if (!response.ok) {
-      console.error(`Failed to fetch parent category ${parentId}: ${response.status} ${response.statusText}`);
       return null;
     }
 
     const parentCategory = await response.json();
-    console.log(`Fetched parent category ${parentId}:`, JSON.stringify(parentCategory, null, 2));
-
     const result = {
       slug: parentCategory.slug || 'uncategorized',
     };
@@ -80,7 +73,6 @@ async function fetchParentCategory(parentId: string): Promise<{ slug: string } |
     categoryCache.set(parentId, { slug: result.slug });
     return result;
   } catch (error) {
-    console.error(`Error fetching parent category ${parentId}:`, error);
     return null;
   }
 }
@@ -89,13 +81,11 @@ async function fetchParentCategory(parentId: string): Promise<{ slug: string } |
 async function getPostUrl(post: any, baseUrl: string): Promise<string> {
   const category = post.categories?.[0];
   if (!category) {
-    console.warn(`Post ${post.slug} has no category, using default 'uncategorized'`);
     return `${baseUrl}/uncategorized/${post.slug}`;
   }
 
   const categoryDetails = await fetchCategoryBySlug(category.slug);
   if (!categoryDetails) {
-    console.warn(`Category not found for post ${post.slug}, using default 'uncategorized'`);
     return `${baseUrl}/uncategorized/${post.slug}`;
   }
 
@@ -103,7 +93,6 @@ async function getPostUrl(post: any, baseUrl: string): Promise<string> {
     const parentId = typeof categoryDetails.parent === 'string' ? categoryDetails.parent : categoryDetails.parent.id;
     const parentCategory = await fetchParentCategory(parentId);
     if (!parentCategory) {
-      console.warn(`Parent category not found for category ${categoryDetails.slug}, treating as top-level`);
       return `${baseUrl}/${categoryDetails.slug}/${post.slug}`;
     }
     return `${baseUrl}/${parentCategory.slug}/${categoryDetails.slug}/${post.slug}`;
@@ -113,8 +102,6 @@ async function getPostUrl(post: any, baseUrl: string): Promise<string> {
 }
 
 export async function GET(request: Request) {
-  console.log('Request URL:', request.url);
-
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://dev.dinasuvadu.com';
 
   // Extract page number from the query parameter first (from middleware rewrite)
@@ -122,7 +109,6 @@ export async function GET(request: Request) {
   const { searchParams } = url;
   const pageParam = searchParams.get('page');
   let page = parseInt(pageParam || '1', 10);
-  console.log('Page parameter from query:', pageParam);
 
   // Fallback to URL path if query parameter is not present (for direct access to /sitemap-post)
   const pathname = url.pathname;
@@ -130,14 +116,10 @@ export async function GET(request: Request) {
     const pageMatch = pathname.match(/post-sitemap(\d+)\.xml/);
     if (pageMatch) {
       page = parseInt(pageMatch[1], 10);
-      console.log('Extracted page from URL path:', page);
     }
   }
 
-  console.log('Final page number:', page);
-
   if (isNaN(page) || page < 1) {
-    console.log('Invalid page number:', page);
     return new Response('Invalid page number', { status: 404 });
   }
 
@@ -152,17 +134,14 @@ export async function GET(request: Request) {
   try {
     while (true) {
       const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/posts?limit=${limit}&page=${currentPage}&where[_status][equals]=published&depth=2`;
-      console.log('Fetching posts batch from:', apiUrl);
       const response = await fetch(apiUrl);
       if (!response.ok) {
         throw new Error(`API request failed with status ${response.status}`);
       }
       const data = await response.json();
-      console.log('API Response (batch):', JSON.stringify(data, null, 2));
       const posts = data.docs || [];
       allPosts.push(...posts);
       totalPosts = data.totalDocs || 0;
-      console.log(`Fetched ${posts.length} posts in batch, total so far: ${allPosts.length}`);
 
       if (posts.length < limit) {
         // No more posts to fetch
@@ -171,37 +150,11 @@ export async function GET(request: Request) {
       currentPage++;
     }
   } catch (error) {
-    console.error('Error fetching posts:', error);
     return new Response('Error fetching posts', { status: 500 });
   }
 
-  console.log('Total posts fetched:', allPosts.length);
-  console.log('Total posts reported by API:', totalPosts);
-
-  // Log the raw posts to identify the correct date field
-  console.log('Raw posts (first 5):', allPosts.slice(0, 5).map((post: any) => ({
-    id: post.id,
-    slug: post.slug,
-    publishedAt: post.publishedAt,
-    updatedAt: post.updatedAt,
-    publishedDate: post.publishedDate,
-    updatedDate: post.updatedDate,
-    _status: post._status,
-    categories: post.categories?.map((cat: any) => ({ id: cat.id, slug: cat.slug })),
-  })));
-
   // Filter posts to ensure only published ones with a slug are included
   const filteredPosts = allPosts.filter((post: any) => post._status === 'published' && post.slug);
-
-  console.log('Number of filtered posts:', filteredPosts.length);
-  console.log('Filtered posts (before sorting):', filteredPosts.map((post: any) => ({
-    id: post.id,
-    slug: post.slug,
-    publishedAt: post.publishedAt,
-    updatedAt: post.updatedAt,
-    _status: post._status,
-    categories: post.categories?.map((cat: any) => ({ id: cat.id, slug: cat.slug })),
-  })));
 
   // Sort posts by publishedAt in descending order (newest first), with a fallback to updatedAt or current date
   filteredPosts.sort((a: any, b: any) => {
@@ -210,33 +163,13 @@ export async function GET(request: Request) {
     return new Date(dateB).getTime() - new Date(dateA).getTime();
   });
 
-  console.log('Filtered posts (after sorting):', filteredPosts.map((post: any) => ({
-    id: post.id,
-    slug: post.slug,
-    publishedAt: post.publishedAt,
-    updatedAt: post.updatedAt,
-    _status: post._status,
-    categories: post.categories?.map((cat: any) => ({ id: cat.id, slug: cat.slug })),
-  })));
-
   // Apply pagination manually
   const startIndex = (page - 1) * postsPerPage;
   const endIndex = startIndex + postsPerPage;
   const postsForPage = filteredPosts.slice(startIndex, endIndex);
 
-  console.log('Start index:', startIndex, 'End index:', endIndex);
-  console.log('Posts for page:', postsForPage.map((post: any) => ({
-    id: post.id,
-    slug: post.slug,
-    publishedAt: post.publishedAt,
-    updatedAt: post.updatedAt,
-    _status: post._status,
-    categories: post.categories?.map((cat: any) => ({ id: cat.id, slug: cat.slug })),
-  })));
-
   // If no posts are found for this page, return a 404
   if (postsForPage.length === 0) {
-    console.log('No posts found for page:', page);
     return new Response('No posts found for this page', { status: 404 });
   }
 
@@ -250,7 +183,6 @@ export async function GET(request: Request) {
       };
     })
   );
-  console.log('Post pages:', postPages);
 
   // Generate sitemap XML
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>

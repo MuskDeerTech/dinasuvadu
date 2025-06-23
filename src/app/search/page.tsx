@@ -1,3 +1,5 @@
+export const dynamic = "force-static"; // Force static generation where possible
+export const revalidate = 10;
 import axios from "axios";
 import Link from "next/link";
 import { Space } from "antd";
@@ -5,7 +7,7 @@ import { ClockCircleOutlined } from "@ant-design/icons";
 import Text from "antd/es/typography/Text";
 import "antd/dist/reset.css";
 import ShareButton from "../../components/ShareButton";
-import Seo from "../../components/Seo"
+import Seo from "../../components/Seo";
 
 type Tag = {
   id: string;
@@ -57,7 +59,7 @@ const getPageNumber = (pageParam: string | string[] | undefined): number => {
 // Helper function to get the search query (string | string[] | undefined)
 const getSearchQuery = (queryParam: string | string[] | undefined): string => {
   if (Array.isArray(queryParam)) {
-    return queryParam[0] || ""; // Take the first value if it's an array
+    return queryParam[0] || "";
   }
   return queryParam || "";
 };
@@ -68,14 +70,6 @@ function getImageUrl(url: string | undefined): string | null {
   return url.startsWith("http") ? url : `${apiUrl}${url}`;
 }
 
-// Helper function to calculate read time
-// function calculateReadTime(description: string | undefined): string {
-//   if (!description) return "1 Min Read";
-//   const words = description.split(/\s+/).length;
-//   const minutes = Math.ceil(words / 200);
-//   return `${minutes} Min Read`;
-// }
-
 // Fetch posts by search query with pagination
 async function fetchPostsBySearch(
   query: string,
@@ -83,12 +77,9 @@ async function fetchPostsBySearch(
   limit: number = 10
 ): Promise<{ posts: Post[]; total: number }> {
   try {
-    console.log(
-      `Fetching posts for search query: ${query}, page: ${page}, limit: ${limit}`
-    );
     const res = await axios.get(
       `${apiUrl}/api/posts?limit=${limit}&page=${page}&depth=5`,
-      { timeout: 10000 } // 10 seconds timeout
+      { timeout: 10000 }
     );
     const allPosts: Post[] = res.data.docs || [];
     const total = res.data.totalDocs || 0;
@@ -98,70 +89,36 @@ async function fetchPostsBySearch(
 
     // Filter posts on the client side
     const filteredPosts = allPosts.filter((post) => {
-      // Check title
       if (post.title?.toLowerCase().includes(normalizedQuery)) return true;
-
-      // Check meta.description
       if (post.meta?.description?.toLowerCase().includes(normalizedQuery))
         return true;
-
-      // Check slug
       if (post.slug?.toLowerCase().includes(normalizedQuery)) return true;
-
-      // Check tags.name
       if (
         post.tags?.some((tag) =>
           tag.name?.toLowerCase().includes(normalizedQuery)
         )
       )
         return true;
-
-      // Check layout.media.alt
       if (
         post.layout?.some((block) =>
           block.media?.alt?.toLowerCase().includes(normalizedQuery)
         )
       )
         return true;
-
-      // Check categories.title
       if (
         post.categories?.some((category) =>
           category.title?.toLowerCase().includes(normalizedQuery)
         )
       )
         return true;
-
       return false;
     });
 
-    console.log(
-      `Filtered ${filteredPosts.length} posts for search query: ${query}`
-    );
     return {
       posts: filteredPosts,
       total: filteredPosts.length,
     };
   } catch (err) {
-    let errorMessage = "";
-    if (typeof err === "object" && err !== null) {
-      if (
-        "response" in err &&
-        typeof (err as any).response?.data !== "undefined"
-      ) {
-        errorMessage = (err as any).response.data;
-      } else if ("message" in err && typeof (err as any).message === "string") {
-        errorMessage = (err as any).message;
-      } else {
-        errorMessage = JSON.stringify(err);
-      }
-    } else {
-      errorMessage = String(err);
-    }
-    console.error(
-      `Error fetching posts for search query ${query}:`,
-      errorMessage
-    );
     return { posts: [], total: 0 };
   }
 }
@@ -177,35 +134,13 @@ async function fetchParentCategory(
         timeout: 10000,
       }
     );
-    const parentCategory = res.data || null;
-    if (!parentCategory) {
-      console.log(`No parent category found for ID: ${parentId}`);
-      return null;
-    }
-    return {
-      slug: parentCategory.slug || "uncategorized",
-      title: parentCategory.title || "Uncategorized",
-    };
+    return res.data
+      ? {
+          slug: res.data.slug || "uncategorized",
+          title: res.data.title || "Uncategorized",
+        }
+      : null;
   } catch (err) {
-    let errorMessage = "";
-    if (typeof err === "object" && err !== null) {
-      if (
-        "response" in err &&
-        typeof (err as any).response?.data !== "undefined"
-      ) {
-        errorMessage = (err as any).response.data;
-      } else if ("message" in err && typeof (err as any).message === "string") {
-        errorMessage = (err as any).message;
-      } else {
-        errorMessage = JSON.stringify(err);
-      }
-    } else {
-      errorMessage = String(err);
-    }
-    console.error(
-      `Error fetching parent category with ID ${parentId}:`,
-      errorMessage
-    );
     return null;
   }
 }
@@ -228,175 +163,153 @@ export default async function SearchPage({
   const totalPages = Math.ceil(total / limit);
 
   return (
-   <>
-   <Seo
-  pathname={`/search?s=${encodeURIComponent(query)}${page > 1 ? `&page=${page}` : ""}`}
-  title={`${query} - Dinasuvadu`}
-  pageType="search"
-  searchQuery={query}
-/>
-    <div className="site">
-      <div className="site-main">
-        <h1 className="category-title">Search Results for: {query}</h1>
-      </div>
+    <>
+      <Seo
+        pathname={`/search?s=${encodeURIComponent(query)}${page > 1 ? `&page=${page}` : ""}`}
+        title={`${query} - Dinasuvadu`}
+        pageType="search"
+        searchQuery={query}
+      />
+      <div className="site">
+        <div className="site-main">
+          <h1 className="category-title">Search Results for: {query}</h1>
+        </div>
 
-      {posts.length === 0 ? (
-        <p className="text-gray-500">No posts found for this search query.</p>
-      ) : (
-        <>
-          <div className="category-grid">
-            {await Promise.all(
-              posts.map(async (post) => {
-                const imageUrl = getImageUrl(post.heroImage?.url);
-                const imageAlt = post.heroImage?.alt || post.title;
+        {posts.length === 0 ? (
+          <p className="text-gray-500">No posts found for this search query.</p>
+        ) : (
+          <>
+            <div className="category-grid">
+              {await Promise.all(
+                posts.map(async (post) => {
+                  const imageUrl = getImageUrl(post.heroImage?.url);
+                  const imageAlt = post.heroImage?.alt || post.title;
 
-                const category = post.categories?.[0];
-                const categorySlug = category?.slug || "uncategorized";
+                  const category = post.categories?.[0];
+                  const categorySlug = category?.slug || "uncategorized";
 
-                let postUrl = `/${categorySlug}/${post.slug}`;
-                if (category?.parent) {
-                  const parent =
-                    typeof category.parent === "string"
-                      ? await fetchParentCategory(category.parent)
-                      : category.parent;
-                  if (parent) {
-                    postUrl = `/${parent.slug}/${categorySlug}/${post.slug}`;
+                  let postUrl = `/${categorySlug}/${post.slug}`;
+                  if (category?.parent) {
+                    const parent =
+                      typeof category.parent === "string"
+                        ? await fetchParentCategory(category.parent)
+                        : category.parent;
+                    if (parent) {
+                      postUrl = `/${parent.slug}/${categorySlug}/${post.slug}`;
+                    }
                   }
-                }
 
-                // const readTime = calculateReadTime(post.meta?.description);
-
-                return (
-                  <article
-                    key={post.id}
-                    className="flex flex-col md:flex-row gap-4 border-b pb-6 hover:bg-gray-50 transition"
-                  >
-                    <div className="post-item-category api-title bor-1">
-                      <div className="flex-1 site-main">
-                        <Link href={postUrl} className="flex flex-col h-full">
-                          <h3 className="post-title-1">{post.title}</h3>
-                          {post.meta?.description && (
-                            <p className="post-description">
-                              {post.meta.description}
-                            </p>
-                          )}
-                        </Link>
-                        <div className="post-first-tag">
-                          {post.tags && post.tags.length > 0 && (
-                            <Link href={`/tags/${post.tags[0].slug}`}>
-                              <span className="text-blue-600 hover:underline">
-                                {post.tags[0].name}
-                              </span>
-                            </Link>
-                          )}
-                          <span style={{ marginTop: "4px" }}>
-                            {/* <Space size={4}>
-                              <ClockCircleOutlined
-                                style={{ fontSize: "12px", color: "#8c8c8c" }}
-                              />
-                              <Text
-                                type="secondary"
-                                style={{ fontSize: "12px" }}
-                              >
-                                {readTime}
-                              </Text>
-                            </Space> */}
-                          </span>
-                          <ShareButton
-                            url={`${baseUrl}${postUrl}`} // Updated to use dynamic baseUrl
-                            title={post.title}
-                            description={post.meta?.description}
-                          />
+                  return (
+                    <article
+                      key={post.id}
+                      className="flex flex-col md:flex-row gap-4 border-b pb-6 hover:bg-gray-50 transition">
+                      <div className="post-item-category api-title bor">
+                        <div className="flex-1 site-main">
+                          <Link href={postUrl} className="flex flex-col h-full">
+                            <h3 className="post-title-1">{post.title}</h3>
+                            {post.meta?.description && (
+                              <p className="post-description">
+                                {post.meta.description}
+                              </p>
+                            )}
+                          </Link>
+                          <div className="post-first-tag">
+                            {post.tags && post.tags.length > 0 && (
+                              <Link href={`/tags/${post.tags[0].slug}`}>
+                                <span className="text-blue-600 hover:underline">
+                                  {post.tags[0].name}
+                                </span>
+                              </Link>
+                            )}
+                            <span style={{ marginTop: "4px" }} />
+                            <ShareButton
+                              url={`${baseUrl}${postUrl}`}
+                              title={post.title}
+                              description={post.meta?.description}
+                            />
+                          </div>
                         </div>
+                        {imageUrl ? (
+                          <Link
+                            href={postUrl}
+                            className="relative w-full md:w-48 h-48 overflow-hidden rounded-t-lg site-main"
+                          >
+                            <img
+                              src={imageUrl}
+                              alt={imageAlt}
+                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                              style={{ borderRadius: "12px" }}
+                            />
+                          </Link>
+                        ) : (
+                          <div className="w-full md:w-48 h-48 bg-gray-100 rounded-t-lg flex items-center justify-center">
+                            <span className="text-gray-400 text-sm">
+                              No Image
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      {imageUrl ? (
-                        <Link
-                          href={postUrl} className="relative w-full md:w-48 h-48 overflow-hidden rounded-t-lg site-main">
-                          <img
-                            src={imageUrl}
-                            alt={imageAlt}
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                            style={{ borderRadius: "10px" }}
-                          />
-                        </Link>
-                      ) : (
-                        <div className="w-full md:w-48 h-48 bg-gray-100 rounded-t-lg flex items-center justify-center">
-                          <span className="text-gray-400 text-sm">
-                            No Image
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </article>
-                );
-              })
-            )}
-          </div>
-
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex justify-center space-x-2 mt-8 web-stories-pagination">
-              {page > 1 && (
-                <Link
-                  href={`/search?s=${encodeURIComponent(query)}&page=${
-                    page - 1
-                  }`}
-                  className="pagination-link"
-                >
-                  Prev
-                </Link>
-              )}
-
-              <Link
-                href={`/search?s=${encodeURIComponent(query)}&page=1`}
-                className={`pagination-link ${page === 1 ? "active" : ""}`}
-              >
-                1
-              </Link>
-
-              {page > 2 && <span className="pagination-ellipsis">…</span>}
-
-              {page !== 1 && page !== totalPages && (
-                <Link
-                  href={`/search?s=${encodeURIComponent(query)}&page=${page}`}
-                  className="pagination-link active"
-                >
-                  {page}
-                </Link>
-              )}
-
-              {page < totalPages - 1 && (
-                <span className="pagination-ellipsis">…</span>
-              )}
-
-              {totalPages > 1 && (
-                <Link
-                  href={`/search?s=${encodeURIComponent(
-                    query
-                  )}&page=${totalPages}`}
-                  className={`pagination-link ${
-                    page === totalPages ? "active" : ""
-                  }`}
-                >
-                  {totalPages}
-                </Link>
-              )}
-
-              {page < totalPages && (
-                <Link
-                  href={`/search?s=${encodeURIComponent(query)}&page=${
-                    page + 1
-                  }`}
-                  className="pagination-link"
-                >
-                  Next
-                </Link>
+                    </article>
+                  );
+                })
               )}
             </div>
-          )}
-        </>
-      )}
-    </div>
-   </>
+
+            {totalPages > 1 && (
+              <div className="flex justify-center space-x-2 mt-8 web-stories-pagination">
+                {page > 1 && (
+                  <Link
+                    href={`/search?s=${encodeURIComponent(query)}&page=${page - 1}`}
+                    className="pagination-link"
+                  >
+                    Prev
+                  </Link>
+                )}
+
+                <Link
+                  href={`/search?s=${encodeURIComponent(query)}&page=1`}
+                  className={`pagination-link ${page === 1 ? "active" : ""}`}
+                >
+                  1
+                </Link>
+
+                {page > 2 && <span className="pagination-ellipsis">…</span>}
+
+                {page !== 1 && page !== totalPages && (
+                  <Link
+                    href={`/search?s=${encodeURIComponent(query)}&page=${page}`}
+                    className="pagination-link active"
+                  >
+                    {page}
+                  </Link>
+                )}
+
+                {page < totalPages - 1 && (
+                  <span className="pagination-ellipsis">…</span>
+                )}
+
+                {totalPages > 1 && (
+                  <Link
+                    href={`/search?s=${encodeURIComponent(query)}&page=${totalPages}`}
+                    className={`pagination-link ${page === totalPages ? "active" : ""}`}
+                  >
+                    {totalPages}
+                  </Link>
+                )}
+
+                {page < totalPages && (
+                  <Link
+                    href={`/search?s=${encodeURIComponent(query)}&page=${page + 1}`}
+                    className="pagination-link"
+                  >
+                    Next
+                  </Link>
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </>
   );
 }

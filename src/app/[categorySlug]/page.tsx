@@ -1,5 +1,6 @@
+
 export const dynamic = "force-static"; // Force static generation where possible
-export const revalidate = 60;
+export const revalidate = 10;
 import axios from "axios";
 import Link from "next/link";
 import Text from "antd/es/typography/Text";
@@ -61,22 +62,11 @@ function getImageUrl(url: string | undefined): string | null {
 // Fetch a category by slug
 async function fetchCategoryBySlug(slug: string): Promise<Category | null> {
   try {
-    console.log(`Fetching category with slug: ${slug}`);
     const response = await axios.get(
       `${apiUrl}/api/categories?where[slug][equals]=${slug}&depth=2`
     );
-    const category = response.data.docs[0] || null;
-    if (!category) {
-      console.log(`No category found for slug: ${slug}`);
-      return null;
-    }
-    console.log(`Fetched category ${slug}:`, JSON.stringify(category, null, 2));
-    return category;
+    return response.data.docs[0] || null;
   } catch (error) {
-    console.error(
-      `Error fetching category with slug ${slug}:`,
-      (error as any).response?.data || (error as any).message
-    );
     return null;
   }
 }
@@ -86,24 +76,15 @@ async function fetchCategoryById(
   categoryId: string
 ): Promise<{ title: string } | null> {
   try {
-    console.log(`Fetching category with ID: ${categoryId}`);
     const res = await axios.get(
       `${apiUrl}/api/categories/${categoryId}?depth=1`
     );
-    const category = res.data || null;
-    if (!category) {
-      console.log(`No category found for ID: ${categoryId}`);
-      return null;
-    }
-    console.log(`Fetched category by ID:`, JSON.stringify(category, null, 2));
-    return {
-      title: category.title || "Uncategorized",
-    };
+    return res.data || null
+      ? {
+          title: res.data.title || "Uncategorized",
+        }
+      : null;
   } catch (err) {
-    console.error(
-      `Error fetching category with ID ${categoryId}:`,
-      (err as any)?.response?.data || (err as any)?.message
-    );
     return null;
   }
 }
@@ -115,46 +96,26 @@ async function fetchPostsByCategory(
   limit: number = 10
 ): Promise<{ posts: Post[]; total: number }> {
   try {
-    console.log(
-      `Fetching posts for category ID: ${categoryId}, page: ${page}, limit: ${limit}`
-    );
     const response = await axios.get(
       `${apiUrl}/api/posts?where[categories][in]=${categoryId}&sort=-publishedAt&depth=2&limit=${limit}&page=${page}`
     );
-    const posts = response.data.docs || [];
-    const total = response.data.totalDocs || 0;
-    console.log(
-      `Fetched ${posts.length} posts for category ID ${categoryId}, total: ${total}`
-    );
-    return { posts, total };
+    return {
+      posts: response.data.docs || [],
+      total: response.data.totalDocs || 0,
+    };
   } catch (error) {
-    console.error(
-      `Error fetching posts for category ID ${categoryId}:`,
-      (error as any).response?.data || (error as any).message
-    );
     return { posts: [], total: 0 };
   }
 }
 
 // Fetch subcategories by parent category ID
-async function fetchSubCategories(
-  parentId: string
-): Promise<Category[]> {
+async function fetchSubCategories(parentId: string): Promise<Category[]> {
   try {
-    console.log(`Fetching subcategories for parent ID: ${parentId}`);
     const response = await axios.get(
       `${apiUrl}/api/categories?where[parent][equals]=${parentId}&depth=1&limit=100`
     );
-    const subCategories = response.data.docs || [];
-    console.log(
-      `Fetched ${subCategories.length} subcategories for parent ID ${parentId}`
-    );
-    return subCategories;
+    return response.data.docs || [];
   } catch (error) {
-    console.error(
-      `Error fetching subcategories for parent ID ${parentId}:`,
-      (error as any).response?.data || (error as any).message
-    );
     return [];
   }
 }
@@ -166,26 +127,19 @@ export default async function CategoryPage({
   params: Promise<{ categorySlug: string }>;
   searchParams: Promise<{ page?: string }>;
 }) {
-  console.log("Entering CategoryPage component for [categorySlug]");
-
   const { categorySlug } = await params;
   const query = await searchParams;
   const page = parseInt(query.page || "1", 10);
   const limit = 10;
-  console.log(`Handling route: /${categorySlug}?page=${page}`);
 
   // Fetch the parent category
   const category = await fetchCategoryBySlug(categorySlug);
   if (!category) {
-    console.log(`Category ${categorySlug} not found`);
     notFound();
   }
 
   // Ensure it's a top-level category (no parent)
   if (category.parent) {
-    console.log(
-      `Category ${categorySlug} has a parent, this route is for top-level categories only.`
-    );
     notFound();
   }
 
@@ -233,7 +187,7 @@ export default async function CategoryPage({
                 name: post.title,
                 url: subCategories.length > 0
                   ? `${baseUrl}/${categorySlug}/${post.categories?.[0]?.slug || 'uncategorized'}/${post.slug}`
-                  : `${baseUrl}/${categorySlug}/${post.slug}`,
+                    : `${baseUrl}/${categorySlug}/${post.slug}`,
               })),
             },
           }),
@@ -245,7 +199,7 @@ export default async function CategoryPage({
           aria-label="Breadcrumb"
           className="mb-8 text-sm font-medium text-gray-500"
         >
-          <div className="flex items-center space-x-2 breadcrumbs">
+          <div className="flex items-center">
             <Link
               href="/"
               className="text-blue-600 hover:text-blue-800 transition-colors"
@@ -424,11 +378,9 @@ export default async function CategoryPage({
 }
 
 export async function generateStaticParams() {
-  console.log("Entering generateStaticParams for [categorySlug]");
   try {
     const res = await axios.get(`${apiUrl}/api/categories?limit=1000&depth=2`);
     const data = await res.data;
-    console.log(`Fetched ${data.docs.length} categories for static generation`);
 
     const params = data.docs
       .filter((category: Category) => !category.parent)
@@ -436,10 +388,8 @@ export async function generateStaticParams() {
         categorySlug: category.slug,
       }));
 
-    console.log(`Total static params generated: ${params.length}`);
     return params;
   } catch (error) {
-    console.error("Error generating static params:", (error as any).response?.data || (error as any).message);
     return [];
   }
 }

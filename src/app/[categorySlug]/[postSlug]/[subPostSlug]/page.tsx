@@ -1,8 +1,5 @@
-
 import axios from "axios";
 import Link from "next/link";
-// import { Space } from "antd";
-// import { ClockCircleOutlined } from "@ant-design/icons";
 import Text from "antd/es/typography/Text";
 import { notFound } from "next/navigation";
 import Seo from "../../../../components/Seo";
@@ -68,7 +65,7 @@ type Post = {
 // API base URL
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-// Helper function to get the image URL with proper base URL (Added from Home page)
+// Helper function to get the image URL with proper base URL
 function getImageUrl(url: string | undefined): string | null {
   if (!url) return null;
   return url.startsWith("http") ? url : `${apiUrl}${url}`;
@@ -77,37 +74,11 @@ function getImageUrl(url: string | undefined): string | null {
 // Fetch a category by slug
 async function fetchCategoryBySlug(slug: string): Promise<Category | null> {
   try {
-    console.log(`Fetching category with slug: ${slug}`);
     const response = await axios.get(
       `${apiUrl}/api/categories?where[slug][equals]=${slug}&depth=2`
     );
-    const category = response.data.docs[0] || null;
-    if (!category) {
-      console.log(`No category found for slug: ${slug}`);
-      return null;
-    }
-    console.log(`Fetched category ${slug}:`, JSON.stringify(category, null, 2));
-    return category;
+    return response.data.docs[0] || null;
   } catch (error) {
-    let errorMsg = "";
-    if (typeof error === "object" && error !== null) {
-      if (
-        "response" in error &&
-        typeof (error as any).response?.data !== "undefined"
-      ) {
-        errorMsg = (error as any).response.data;
-      } else if (
-        "message" in error &&
-        typeof (error as any).message === "string"
-      ) {
-        errorMsg = (error as any).message;
-      } else {
-        errorMsg = JSON.stringify(error);
-      }
-    } else {
-      errorMsg = String(error);
-    }
-    console.error(`Error fetching category with slug ${slug}:`, errorMsg);
     return null;
   }
 }
@@ -117,41 +88,14 @@ async function fetchParentCategory(
   parentId: string
 ): Promise<{ slug: string; title: string } | null> {
   try {
-    console.log(`Fetching parent category with ID: ${parentId}`);
     const res = await axios.get(`${apiUrl}/api/categories/${parentId}?depth=1`);
-    const parentCategory = res.data || null;
-    if (!parentCategory) {
-      console.log(`No parent category found for ID: ${parentId}`);
-      return null;
-    }
-    console.log(
-      `Fetched parent category:`,
-      JSON.stringify(parentCategory, null, 2)
-    );
-    return {
-      slug: parentCategory.slug || "uncategorized",
-      title: parentCategory.title || "Uncategorized",
-    };
+    return res.data
+      ? {
+          slug: res.data.slug || "uncategorized",
+          title: res.data.title || "Uncategorized",
+        }
+      : null;
   } catch (err) {
-    let errorMsg = "";
-    if (typeof err === "object" && err !== null) {
-      if (
-        "response" in err &&
-        typeof (err as any).response?.data !== "undefined"
-      ) {
-        errorMsg = (err as any).response.data;
-      } else if ("message" in err && typeof (err as any).message === "string") {
-        errorMsg = (err as any).message;
-      } else {
-        errorMsg = JSON.stringify(err);
-      }
-    } else {
-      errorMsg = String(err);
-    }
-    console.error(
-      `Error fetching parent category with ID ${parentId}:`,
-      errorMsg
-    );
     return null;
   }
 }
@@ -159,38 +103,11 @@ async function fetchParentCategory(
 // Fetch a single post by slug
 async function fetchPost(slug: string): Promise<Post | null> {
   try {
-    console.log(`Fetching post with slug: ${slug}`);
     const response = await axios.get(
       `${apiUrl}/api/posts?where[slug][equals]=${slug}&depth=2`
     );
-    console.log(`API response for post slug ${slug}:`, response.data);
-    const post = response.data.docs[0] || null;
-    if (!post) {
-      console.log(`No post found for slug: ${slug}`);
-    } else {
-      console.log(`Found post: ${post.title} (slug: ${slug})`);
-    }
-    return post;
+    return response.data.docs[0] || null;
   } catch (error) {
-    let errorMsg = "";
-    if (typeof error === "object" && error !== null) {
-      if (
-        "response" in error &&
-        typeof (error as any).response?.data !== "undefined"
-      ) {
-        errorMsg = (error as any).response.data;
-      } else if (
-        "message" in error &&
-        typeof (error as any).message === "string"
-      ) {
-        errorMsg = (error as any).message;
-      } else {
-        errorMsg = JSON.stringify(error);
-      }
-    } else {
-      errorMsg = String(error);
-    }
-    console.error("Error fetching post with slug " + slug + ":", errorMsg);
     return null;
   }
 }
@@ -198,33 +115,11 @@ async function fetchPost(slug: string): Promise<Post | null> {
 // Fetch the latest posts (excluding the current post)
 async function fetchLatestPosts(currentPostSlug: string): Promise<Post[]> {
   try {
-    console.log(`Fetching latest posts excluding slug: ${currentPostSlug}`);
     const response = await axios.get(
       `${apiUrl}/api/posts?limit=5&sort=-publishedAt&where[slug][not_equals]=${currentPostSlug}&depth=2`
     );
-    const posts = response.data.docs || [];
-    console.log(`Fetched ${posts.length} latest posts`);
-    return posts;
+    return response.data.docs || [];
   } catch (error) {
-    let errorMsg = "";
-    if (typeof error === "object" && error !== null) {
-      if (
-        "response" in error &&
-        typeof (error as any).response?.data !== "undefined"
-      ) {
-        errorMsg = (error as any).response.data;
-      } else if (
-        "message" in error &&
-        typeof (error as any).message === "string"
-      ) {
-        errorMsg = (error as any).message;
-      } else {
-        errorMsg = JSON.stringify(error);
-      }
-    } else {
-      errorMsg = String(error);
-    }
-    console.error("Error fetching latest posts:", errorMsg);
     return [];
   }
 }
@@ -234,36 +129,15 @@ async function fetchCategoryById(
   categoryId: string
 ): Promise<{ title: string } | null> {
   try {
-    console.log(`Fetching category with ID: ${categoryId}`);
     const res = await axios.get(
       `${apiUrl}/api/categories/${categoryId}?depth=1`
     );
-    const category = res.data || null;
-    if (!category) {
-      console.log(`No category found for ID: ${categoryId}`);
-      return null;
-    }
-    console.log(`Fetched category by ID:`, JSON.stringify(category, null, 2));
-    return {
-      title: category.title || "Uncategorized",
-    };
+    return res.data
+      ? {
+          title: res.data.title || "Uncategorized",
+        }
+      : null;
   } catch (err) {
-    let errorMsg = "";
-    if (typeof err === "object" && err !== null) {
-      if (
-        "response" in err &&
-        typeof (err as any).response?.data !== "undefined"
-      ) {
-        errorMsg = (err as any).response.data;
-      } else if ("message" in err && typeof (err as any).message === "string") {
-        errorMsg = (err as any).message;
-      } else {
-        errorMsg = JSON.stringify(err);
-      }
-    } else {
-      errorMsg = String(err);
-    }
-    console.error(`Error fetching category with ID ${categoryId}:`, errorMsg);
     return null;
   }
 }
@@ -295,25 +169,16 @@ export default async function SubCategoryPostPage({
     subPostSlug: string;
   }>;
 }) {
-  console.log(
-    "Entering SubCategoryPostPage component for [categorySlug]/[postSlug]/[subPostSlug]"
-  );
-
   const { categorySlug, postSlug, subPostSlug } = await params;
-  console.log(`Handling route: /${categorySlug}/${postSlug}/${subPostSlug}`);
 
   // Fetch the subcategory (postSlug should be a subcategory like "india")
   const subCategory = await fetchCategoryBySlug(postSlug);
   if (!subCategory) {
-    console.log(`Subcategory ${postSlug} not found`);
     notFound();
   }
 
   // Ensure the subcategory has a parent
   if (!subCategory.parent) {
-    console.log(
-      `Category ${postSlug} has no parent, this route is for subcategories only.`
-    );
     notFound();
   }
 
@@ -323,15 +188,11 @@ export default async function SubCategoryPostPage({
       ? await fetchParentCategory(subCategory.parent)
       : subCategory.parent;
   if (!parentCategory) {
-    console.log(`Parent category not found for subcategory ${postSlug}`);
     notFound();
   }
 
   // Verify the parent category matches categorySlug
   if (parentCategory.slug !== categorySlug) {
-    console.log(
-      `Parent category slug ${parentCategory.slug} does not match categorySlug ${categorySlug}`
-    );
     notFound();
   }
 
@@ -347,16 +208,12 @@ export default async function SubCategoryPostPage({
   // Fetch the post (subPostSlug is the actual post slug)
   const post = await fetchPost(subPostSlug);
   if (!post) {
-    console.log(`Post not found for slug: ${subPostSlug}`);
     notFound();
   }
 
   // Get the post's category with a fallback
   let postCategory: Category | null = post.categories?.[0] || null;
   if (!postCategory) {
-    console.log(
-      `Post ${subPostSlug} has no associated category, using default`
-    );
     postCategory = {
       id: "default",
       slug: "uncategorized",
@@ -366,9 +223,6 @@ export default async function SubCategoryPostPage({
 
   // Verify the post's category matches the subcategory
   if (postCategory.slug !== postSlug) {
-    console.log(
-      `Post category ${postCategory.slug} does not match subcategory ${postSlug}`
-    );
     notFound();
   }
 
@@ -402,7 +256,7 @@ export default async function SubCategoryPostPage({
   // Render the page
   return (
     <>
-    <script
+      <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
@@ -411,7 +265,7 @@ export default async function SubCategoryPostPage({
             headline: post.title,
             image: [imageUrl],
             datePublished: post.publishedAt,
-            dateModified: post.publishedAt, // Update this if you track modifications
+            dateModified: post.publishedAt,
             author: post.populatedAuthors?.map((author) => ({
               "@type": "Person",
               name: author.name,
@@ -421,7 +275,7 @@ export default async function SubCategoryPostPage({
               name: "Dinasuvadu",
               logo: {
                 "@type": "ImageObject",
-                url: `${baseUrl}/images/logo.png`, // Update with your logo URL
+                url: `${baseUrl}/images/logo.png`,
               },
             },
             url: postUrl,
@@ -434,103 +288,98 @@ export default async function SubCategoryPostPage({
           }),
         }}
       />
-     <Seo
-  pathname={`/${categorySlug}/${postSlug}/${subPostSlug}`}
-  pageType="post"
-  postTitle={post.title}
-  keywords={keywords}
-/>
-    <div className="site site-main">
-      <div className="post-grid lg:grid lg:grid-cols-3 lg:gap-8">
-        {/* Main Article Content */}
-        <article className="lg:col-span-2">
-          {/* Breadcrumbs */}
-          <nav
-            aria-label="Breadcrumb"
-            className="mb-6 text-sm font-medium text-gray-600"
-          >
-            <div className="flex items-center space-x-2 breadcrumbs">
-              <Link
-                href="/"
-                className="text-indigo-600 hover:underline transition-colors"
-              >
-                Home
-              </Link>
-
-              <span className="text-gray-400">{">"}</span>
-
-              <Link
-                href={`/${categorySlug}`}
-                className="text-indigo-600 hover:underline transition-colors"
-              >
-                {parentCategory.title}
-              </Link>
-
-              <span className="text-gray-400">{">"}</span>
-
-              <Link
-                href={`/${categorySlug}/${postSlug}`}
-                className="text-indigo-600 hover:underline transition-colors"
-              >
-                {subCategoryTitle}
-              </Link>
-            </div>
-          </nav>
-
-          {/* Post Title */}
-          <h1 className="single-post-title">{post.title}</h1>
-
-          {/* Meta Description */}
-          {post.meta?.description && (
-            <p className="post-summary-box">{post.meta.description}</p>
-          )}
-
-          {/* Meta Information */}
-          <div className="entry-meta">
-            <div
-              className="flex flex-wrap items-center text-sm text-gray-600 mb-8 gap-2"
-              style={{ marginBottom: "10px" }}
+      <Seo
+        pathname={`/${categorySlug}/${postSlug}/${subPostSlug}`}
+        pageType="post"
+        postTitle={post.title}
+        keywords={keywords}
+      />
+      <div className="site site-main">
+        <div className="post-grid lg:grid lg:grid-cols-3 lg:gap-8">
+          {/* Main Article Content */}
+          <article className="lg:col-span-2">
+            {/* Breadcrumbs */}
+            <nav
+              aria-label="Breadcrumb"
+              className="mb-6 text-sm font-medium text-gray-600"
             >
-              {post.populatedAuthors && post.populatedAuthors.length > 0 && (
-                <>
-                  <span>By </span>
-                  {post.populatedAuthors.map((author, i) => (
-                    <span key={author.id}>
-                      <Link
-                        href={`/authors/${author.slug}`}
-                        className="text-indigo-600 hover:underline transition-colors"
-                      >
-                        {author.name}
-                      </Link>
-                      {post.populatedAuthors &&
-                        i < post.populatedAuthors.length - 1 &&
-                        ", "}
+              <div className="flex items-center space-x-2 breadcrumbs">
+                <Link
+                  href="/"
+                  className="text-indigo-600 hover:underline transition-colors"
+                >
+                  Home
+                </Link>
+                <span className="text-gray-400">{">"}</span>
+                <Link
+                  href={`/${categorySlug}`}
+                  className="text-indigo-600 hover:underline transition-colors"
+                >
+                  {parentCategory.title}
+                </Link>
+                <span className="text-gray-400">{">"}</span>
+                <Link
+                  href={`/${categorySlug}/${postSlug}`}
+                  className="text-indigo-600 hover:underline transition-colors"
+                >
+                  {subCategoryTitle}
+                </Link>
+              </div>
+            </nav>
+
+            {/* Post Title */}
+            <h1 className="single-post-title">{post.title}</h1>
+
+            {/* Meta Description */}
+            {post.meta?.description && (
+              <p className="post-summary-box">{post.meta.description}</p>
+            )}
+
+            {/* Meta Information */}
+            <div className="entry-meta">
+              <div
+                className="flex flex-wrap items-center text-sm text-gray-600 mb-8 gap-2"
+                style={{ marginBottom: "10px" }}
+              >
+                {post.populatedAuthors && post.populatedAuthors.length > 0 && (
+                  <>
+                    <span>By </span>
+                    {post.populatedAuthors.map((author, i) => (
+                      <span key={author.id}>
+                        <Link
+                          href={`/authors/${author.slug}`}
+                          className="text-indigo-600 hover:underline transition-colors"
+                        >
+                          {author.name}
+                        </Link>
+                        {post.populatedAuthors &&
+                          i < post.populatedAuthors.length - 1 &&
+                          ", "}
+                      </span>
+                    ))}
+                  </>
+                )}
+                {post.populatedAuthors &&
+                  post.populatedAuthors.length > 0 &&
+                  post.publishedAt && (
+                    <span
+                      className="text-gray-400 mx-2"
+                      style={{ marginLeft: "5px" }}
+                    >
+                      Posted on{" "}
                     </span>
-                  ))}
-                </>
-              )}
-              {post.populatedAuthors &&
-                post.populatedAuthors.length > 0 &&
-                post.publishedAt && (
-                  <span
-                    className="text-gray-400 mx-2"
-                    style={{ marginLeft: "5px" }}
-                  >
-                    Posted on{" "}
+                  )}
+                {post.publishedAt && (
+                  <span>
+                    {new Date(post.publishedAt).toLocaleDateString("en-US", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
                   </span>
                 )}
-              {post.publishedAt && (
-                <span>
-                  {new Date(post.publishedAt).toLocaleDateString("en-US", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  })}
-                </span>
-              )}
-            </div>
-
-            <div className="post-meta-social">
+              </div>
+                 <div className="post-meta-social">
               <div className="d-flex gap al-cn social-media-icon fl-wrap-mob">
                 {/* WhatsApp Share */}
                 <a
@@ -749,50 +598,50 @@ export default async function SubCategoryPostPage({
                 </a>
               </div>
             </div>
-          </div>
+            </div>
 
-          {/* Hero Image */}
-          {post.heroImage && (
-            <figure className="mb-10">
-              <div className="relative">
-                {(() => {
-                  const imageUrl = getImageUrl(post.heroImage.url);
-                  const imageAlt = post.heroImage.alt || "Hero Image";
-                  return imageUrl ? (
-                    <img
-                      src={imageUrl}
-                      alt={imageAlt}
-                      className="w-full h-64 sm:h-96 object-cover rounded-lg shadow-lg"
-                    />
-                  ) : (
-                    <div className="w-full h-64 sm:h-96 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <Text type="secondary">No Image</Text>
-                    </div>
-                  );
-                })()}
-                {post.heroImage.caption && (
-                  <figcaption className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent text-white text-sm p-4 rounded-b-lg">
-                    {post.heroImage.caption}
-                  </figcaption>
-                )}
-              </div>
-            </figure>
-          )}
+            {/* Hero Image */}
+            {post.heroImage && (
+              <figure className="mb-10">
+                <div className="relative">
+                  {(() => {
+                    const imageUrl = getImageUrl(post.heroImage.url);
+                    const imageAlt = post.heroImage.alt || "Hero Image";
+                    return imageUrl ? (
+                      <img
+                        src={imageUrl}
+                        alt={imageAlt}
+                        className="w-full h-64 sm:h-96 object-cover rounded-lg shadow-lg"
+                      />
+                    ) : (
+                      <div className="w-full h-64 sm:h-96 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <Text type="secondary">No Image</Text>
+                      </div>
+                    );
+                  })()}
+                  {post.heroImage.caption && (
+                    <figcaption className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent text-white text-sm p-4 rounded-b-lg">
+                      {post.heroImage.caption}
+                    </figcaption>
+                  )}
+                </div>
+              </figure>
+            )}
 
-          {/* Post Content (Plain Text) */}
-          {postContent && (
-            <section className="mb-12">
-              <div className="prose prose-lg prose-gray max-w-none text-gray-800 leading-relaxed">
-                {postContent.split("\n").map((paragraph, index) => (
-                  <p className="post-desc" key={index}>
-                    {paragraph}
-                  </p>
-                ))}
-              </div>
-            </section>
-          )}
+            {/* Post Content (Plain Text) */}
+            {postContent && (
+              <section className="mb-12">
+                <div className="prose prose-lg prose-gray max-w-none text-gray-800 leading-relaxed">
+                  {postContent.split("\n").map((paragraph, index) => (
+                    <p className="post-desc" key={index}>
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
+              </section>
+            )}
 
-          <div className="post-svg">
+            <div className="post-svg">
             <h2 className="category-title">Follow us</h2>
             <div className="social-icons">
               <a
@@ -1121,142 +970,126 @@ export default async function SubCategoryPostPage({
               </a>
             </div>
           </div>
-          {/* Tags */}
-          {(post.tags ?? []).length > 0 && (
-            <div className="post-tags mt-8">
-              <div className="tags flex flex-wrap gap-2">
-                {(post.tags ?? []).map((tag) => (
-                  <Link key={tag.id} href={`/tags/${tag.slug}`}>
-                    <span className="inline-block bg-gray-100 rounded-full px-4 py-1.5 text-sm font-medium text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition-colors">
-                      {tag.name}
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-        </article>
+      
 
-        {/* Sidebar: Latest Posts */}
-        <aside className="lg:col-span-1 mt-12 lg:mt-0 latest-posts">
-          <div className="sticky top-20 bg-gray-50 border border-gray-200 rounded-lg p-6 shadow-sm">
-            <h2 className="category-title">Latest Posts</h2>
-            {latestPosts.length > 0 ? (
-              <div
-                className="space-y-4"
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "15px",
-                }}
-              >
-                {latestPosts.map((latestPost) => {
-                  const latestCategory = latestPost.categories?.[0];
-                  let latestCategorySlug =
-                    latestCategory?.slug || "uncategorized";
-                  let latestSubCategorySlug: string | null = null;
-
-                  if (latestCategory?.parent) {
-                    const parent =
-                      typeof latestCategory.parent === "string"
-                        ? parentCategoriesMap[latestCategory.parent]
-                        : latestCategory.parent;
-                    if (parent) {
-                      latestSubCategorySlug = latestCategorySlug;
-                      latestCategorySlug = parent.slug || "uncategorized";
-                    }
-                  }
-
-                  const imageUrl = getImageUrl(
-                    latestPost.heroImage?.url || latestPost.meta?.image?.url
-                  );
-                  const imageAlt =
-                    latestPost.heroImage?.alt ||
-                    latestPost.meta?.image?.alt ||
-                    "Post Image";
-
-                  return (
-                    <Link
-                      key={latestPost.id}
-                      href={
-                        latestSubCategorySlug
-                          ? `/${latestCategorySlug}/${latestSubCategorySlug}/${latestPost.slug}`
-                          : `/${latestCategorySlug}/${latestPost.slug}`
-                      }
-                      className="block p-4 bg-white border border-gray-200 rounded-md hover:shadow-md hover:bg-gray-100 transition-all"
-                    >
-                      <div className="latest-post-rt">
-                        <div style={{ flex: 1 }}>
-                          <div
-                            className="para-txt"
-                            style={{
-                              ...clampStyle,
-                              fontSize: "13px",
-                              fontWeight: "500",
-                              WebkitBoxOrient: "vertical" as const,
-                            }}
-                          >
-                            {latestPost.title}
-                          </div>
-                          {/* <div style={{ marginTop: "4px" }}>
-                            <Space size={4}>
-                              <ClockCircleOutlined
-                                style={{ fontSize: "12px", color: "#8c8c8c" }}
-                              />
-                              <Text
-                                type="secondary"
-                                style={{ fontSize: "12px" }}
-                              >
-                                5 Min Read
-                              </Text>
-                            </Space>
-                          </div> */}
-                        </div>
-                        {imageUrl ? (
-                          <img
-                            alt={imageAlt}
-                            src={imageUrl}
-                            style={{
-                              width: "120px",
-                              height: "80px",
-                              objectFit: "cover",
-                              borderRadius: "4px",
-                              marginLeft: "12px",
-                            }}
-                          />
-                        ) : (
-                          <div>
-                            <Text type="secondary" style={{ fontSize: "12px" }}>
-                              No Image
-                            </Text>
-                          </div>
-                        )}
-                      </div>
+            {/* Tags */}
+            {(post.tags ?? []).length > 0 && (
+              <div className="post-tags mt-8">
+                <div className="tags flex flex-wrap gap-2">
+                  {(post.tags ?? []).map((tag) => (
+                    <Link key={tag.id} href={`/tags/${tag.slug}`}>
+                      <span className="inline-block bg-gray-100 rounded-full px-4 py-1.5 text-sm font-medium text-gray-700 hover:bg-indigo-100 hover:text-indigo-700 transition-colors">
+                        {tag.name}
+                      </span>
                     </Link>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
-            ) : (
-              <p className="text-gray-600">No recent posts available.</p>
             )}
-          </div>
-        </aside>
+          </article>
+
+          {/* Sidebar: Latest Posts */}
+          <aside className="lg:col-span-1 mt-12 lg:mt-0 latest-posts">
+            <div className="sticky top-20 bg-gray-50 border border-gray-200 rounded-lg p-6 shadow-sm">
+              <h2 className="category-title">Latest Posts</h2>
+              {latestPosts.length > 0 ? (
+                <div
+                  className="space-y-4"
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "15px",
+                  }}
+                >
+                  {latestPosts.map((latestPost) => {
+                    const latestCategory = latestPost.categories?.[0];
+                    let latestCategorySlug =
+                      latestCategory?.slug || "uncategorized";
+                    let latestSubCategorySlug: string | null = null;
+
+                    if (latestCategory?.parent) {
+                      const parent =
+                        typeof latestCategory.parent === "string"
+                          ? parentCategoriesMap[latestCategory.parent]
+                          : latestCategory.parent;
+                      if (parent) {
+                        latestSubCategorySlug = latestCategorySlug;
+                        latestCategorySlug = parent.slug || "uncategorized";
+                      }
+                    }
+
+                    const imageUrl = getImageUrl(
+                      latestPost.heroImage?.url || latestPost.meta?.image?.url
+                    );
+                    const imageAlt =
+                      latestPost.heroImage?.alt ||
+                      latestPost.meta?.image?.alt ||
+                      "Post Image";
+
+                    return (
+                      <Link
+                        key={latestPost.id}
+                        href={
+                          latestSubCategorySlug
+                            ? `/${latestCategorySlug}/${latestSubCategorySlug}/${latestPost.slug}`
+                            : `/${latestCategorySlug}/${latestPost.slug}`
+                        }
+                        className="block p-4 bg-white border border-gray-200 rounded-md hover:shadow-md hover:bg-gray-100 transition-all"
+                      >
+                        <div className="latest-post-rt">
+                          <div style={{ flex: 1 }}>
+                            <div
+                              className="para-txt"
+                              style={{
+                                ...clampStyle,
+                                fontSize: "13px",
+                                fontWeight: "500",
+                                WebkitBoxOrient: "vertical" as const,
+                              }}
+                            >
+                              {latestPost.title}
+                            </div>
+                          </div>
+                          {imageUrl ? (
+                            <img
+                              alt={imageAlt}
+                              src={imageUrl}
+                              style={{
+                                width: "120px",
+                                height: "80px",
+                                objectFit: "cover",
+                                borderRadius: "4px",
+                                marginLeft: "12px",
+                              }}
+                            />
+                          ) : (
+                            <div>
+                              <Text type="secondary" style={{ fontSize: "12px" }}>
+                                No Image
+                              </Text>
+                            </div>
+                          )}
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-gray-600">No recent posts available.</p>
+              )}
+            </div>
+          </aside>
+        </div>
       </div>
-    </div>
     </>
   );
 }
 
 // Generate static parameters for Next.js static generation
 export async function generateStaticParams() {
-  console.log(
-    "Entering generateStaticParams for [categorySlug]/[postSlug]/[subPostSlug]"
-  );
-
   try {
     const res = await axios.get(`${apiUrl}/api/posts?limit=1000&depth=2`);
     const data = await res.data;
-    console.log(`Fetched ${data.docs.length} posts for static generation`);
 
     const params = [];
     for (const post of data.docs) {
@@ -1274,35 +1107,17 @@ export async function generateStaticParams() {
             postSlug: subCategorySlug,
             subPostSlug: post.slug,
           });
-          console.log(
-            `Generated path: ${parentCategorySlug}/${subCategorySlug}/${post.slug}`
-          );
         }
       }
     }
 
-    console.log(`Total static params generated: ${params.length}`);
     return params;
   } catch (error) {
-    let errorMsg = "";
-    if (typeof error === "object" && error !== null) {
-      if (
-        "response" in error &&
-        typeof (error as any).response?.data !== "undefined"
-      ) {
-        errorMsg = (error as any).response.data;
-      } else if (
-        "message" in error &&
-        typeof (error as any).message === "string"
-      ) {
-        errorMsg = (error as any).message;
-      } else {
-        errorMsg = JSON.stringify(error);
-      }
-    } else {
-      errorMsg = String(error);
-    }
-    console.error("Error generating static params:", errorMsg);
     return [];
   }
 }
+
+         
+          
+       
+          

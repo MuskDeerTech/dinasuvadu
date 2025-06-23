@@ -40,7 +40,6 @@ async function fetchCategoryBySlug(categorySlug: string): Promise<{ id: string; 
     });
 
     if (!response.ok) {
-      console.error(`Failed to fetch category ${categorySlug}: ${response.status} ${response.statusText}`);
       return null;
     }
 
@@ -55,7 +54,6 @@ async function fetchCategoryBySlug(categorySlug: string): Promise<{ id: string; 
       parent: category.parent || null,
     };
   } catch (error) {
-    console.error(`Error fetching category ${categorySlug}:`, error);
     return null;
   }
 }
@@ -73,7 +71,6 @@ async function fetchParentCategory(parentId: string): Promise<{ slug: string; ti
     });
 
     if (!response.ok) {
-      console.error(`Failed to fetch parent category ${parentId}: ${response.status} ${response.statusText}`);
       return null;
     }
 
@@ -83,7 +80,6 @@ async function fetchParentCategory(parentId: string): Promise<{ slug: string; ti
       title: parentCategory.title || 'Uncategorized',
     };
   } catch (error) {
-    console.error(`Error fetching parent category ${parentId}:`, error);
     return null;
   }
 }
@@ -92,21 +88,18 @@ async function fetchParentCategory(parentId: string): Promise<{ slug: string; ti
 async function getPostUrl(post: any, baseUrl: string): Promise<string> {
   const category = post.categories?.[0];
   if (!category) {
-    console.warn(`Post ${post.slug} has no category, using default 'uncategorized'`);
     return `${baseUrl}/uncategorized/${post.slug}`;
   }
 
   const categoryDetails = await fetchCategoryBySlug(category.slug);
   if (!categoryDetails) {
-    console.warn(`Category not found for post ${post.slug}, using default 'uncategorized'`);
     return `${baseUrl}/uncategorized/${post.slug}`;
   }
 
   if (categoryDetails.parent) {
-    const parentId = typeof categoryDetails.parent === 'string' ? category.parent : categoryDetails.parent.id;
+    const parentId = typeof categoryDetails.parent === 'string' ? categoryDetails.parent : categoryDetails.parent.id;
     const parentCategory = await fetchParentCategory(parentId);
     if (!parentCategory) {
-      console.warn(`Parent category not found for category ${categoryDetails.slug}, treating as top-level`);
       return `${baseUrl}/${categoryDetails.slug}/${post.slug}`;
     }
     return `${baseUrl}/${parentCategory.slug}/${categoryDetails.slug}/${post.slug}`;
@@ -117,7 +110,7 @@ async function getPostUrl(post: any, baseUrl: string): Promise<string> {
 
 export async function GET(
   request: NextRequest,
-  context: { params: Promise<{ categorySlug: string }> } // Updated type
+  context: { params: Promise<{ categorySlug: string }> }
 ) {
   const params = await context.params; // Resolve the Promise
   const { categorySlug } = params;
@@ -128,7 +121,6 @@ export async function GET(
   // Fetch the category by slug
   const category = await fetchCategoryBySlug(categorySlug);
   if (!category) {
-    console.warn(`Category not found for slug: ${categorySlug}`);
     return new NextResponse(`Category not found: ${categorySlug}`, { status: 404 });
   }
 
@@ -137,7 +129,6 @@ export async function GET(
     const parentId = typeof category.parent === 'string' ? category.parent : category.parent.id;
     const parentCategory = await fetchParentCategory(parentId);
     if (parentCategory) {
-      console.warn(`Category ${categorySlug} is a subcategory, redirecting to /${parentCategory.slug}/${categorySlug}/feed`);
       return new NextResponse(null, {
         status: 301,
         headers: {
@@ -149,7 +140,6 @@ export async function GET(
 
   // Fetch posts for this category
   const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/posts?limit=50&sort=-publishedAt&where[_status][equals]=published&where[categories][contains]=${category.id}&depth=2`;
-  console.log('Fetching posts for category RSS feed from:', apiUrl);
 
   let allPosts = [];
   try {
@@ -162,27 +152,22 @@ export async function GET(
     });
 
     if (!response.ok) {
-      console.error('API response not OK:', response.status, response.statusText);
       throw new Error(`Failed to fetch posts: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
-    console.log('Raw API Response:', JSON.stringify(data, null, 2));
     allPosts = data.docs || [];
-    console.log('Total posts fetched for category RSS:', allPosts.length);
 
     if (allPosts.length === 0) {
-      console.warn(`No posts returned for category: ${categorySlug}`);
       return new NextResponse(`No published posts available for category: ${categorySlug}`, { status: 404 });
     }
   } catch (error) {
-    console.error(`Error fetching posts for category ${categorySlug}:`, error);
-    return new NextResponse(`Error fetching posts: ${error instanceof Error ? error.message : 'Unknown error'}`, { status: 500 });
+    return new NextResponse(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`, { status: 500 });
   }
 
   // Filter posts to ensure only published ones with required fields are included
   const filteredPosts = allPosts.filter((post: any) =>
-    post._status === 'published' &&
+    post._status &&
     post.slug &&
     post.publishedAt &&
     post.title &&
@@ -190,8 +175,7 @@ export async function GET(
   );
 
   if (filteredPosts.length === 0) {
-    console.warn(`No posts passed the filter criteria for category: ${categorySlug}`);
-    return new NextResponse(`No valid posts available for category RSS feed: ${categorySlug}`, { status: 404 });
+    return new NextResponse(`No valid posts available for category: ${categorySlug}`, { status: 404 });
   }
 
   // Sort posts by publishedAt in descending order (newest first) as a fallback
