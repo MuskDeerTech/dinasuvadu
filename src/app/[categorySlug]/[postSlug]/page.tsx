@@ -1,4 +1,4 @@
-export const revalidate = 60; // Revalidate every 60 seconds
+
 import axios from "axios";
 import Link from "next/link";
 // import { Space } from "antd";
@@ -1486,29 +1486,42 @@ export default async function PostOrSubCategoryPage({
 
 export async function generateStaticParams() {
   console.log("Entering generateStaticParams for [categorySlug]/[postSlug]");
+  const params: { categorySlug: string; postSlug: string }[] = [];
+
   try {
+    // Fetch all categories for sub-categories
     const categoryRes = await axios.get(`${apiUrl}/api/categories?limit=1000&depth=2`);
-    const categories = categoryRes.data.docs || [];
+    const categories: Category[] = categoryRes.data.docs || [];
     console.log(`Fetched ${categories.length} categories`);
 
-    const params = [];
     for (const category of categories) {
       if (category.parent) {
         const parent = typeof category.parent === "string"
           ? await fetchParentCategory(category.parent)
           : category.parent;
         if (parent && parent.slug) {
-          const { total } = await fetchPostsByCategory(category.id, 1, 10);
-          const totalPages = Math.ceil(total / 10);
-          for (let page = 1; page <= Math.min(totalPages, 5); page++) { // Limit to 5 pages for now
-            params.push({
-              categorySlug: parent.slug,
-              postSlug: category.slug,
-              page: page.toString(),
-            });
-            console.log(`Generated path: ${parent.slug}/${category.slug}?page=${page}`);
-          }
+          params.push({
+            categorySlug: parent.slug,
+            postSlug: category.slug,
+          });
+          console.log(`Generated subcategory path: ${parent.slug}/${category.slug}`);
         }
+      }
+    }
+
+    // Fetch all posts for direct post routes
+    const postRes = await axios.get(`${apiUrl}/api/posts?limit=1000&depth=3`);
+    const posts: Post[] = postRes.data.docs || [];
+    console.log(`Fetched ${posts.length} posts for static generation`);
+
+    for (const post of posts) {
+      const category = post.categories?.[0];
+      if (category && !category.parent) {
+        params.push({
+          categorySlug: category.slug,
+          postSlug: post.slug,
+        });
+        console.log(`Generated post path: ${category.slug}/${post.slug}`);
       }
     }
 
