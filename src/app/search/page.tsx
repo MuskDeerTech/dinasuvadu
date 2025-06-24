@@ -1,5 +1,5 @@
-export const dynamic = "force-dynamic"; // Force static generation where possible
-export const revalidate = 10;
+
+export const revalidate = 60;
 import axios from "axios";
 import Link from "next/link";
 import { Space } from "antd";
