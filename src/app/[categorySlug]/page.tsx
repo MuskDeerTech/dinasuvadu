@@ -216,23 +216,6 @@ export default async function CategoryPage({
           <h1 className="category-title">{categoryTitle}</h1>
         </header>
 
-        {/* Subcategories (if any) */}
-        {subCategories.length > 0 && (
-          <section className="mb-12">
-            <h2 className="text-2xl font-semibold mb-6 text-gray-800">Subcategories</h2>
-            <div className="flex flex-wrap gap-4">
-              {subCategories.map((subCategory) => (
-                <Link
-                  key={subCategory.id}
-                  href={`/${categorySlug}/${subCategory.slug}`}
-                  className="inline-block bg-blue-100 text-blue-800 rounded-full px-4 py-2 text-sm font-medium hover:bg-blue-200 transition-colors"
-                >
-                  {subCategory.title || subCategory.slug}
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
 
         {/* Posts Grid */}
         {posts.length > 0 ? (
