@@ -1,5 +1,4 @@
 export const dynamic = 'force-static' ;
-export const revalidate = 60;
 import axios from "axios";
 import Link from "next/link";
 import "antd/dist/reset.css"; // Import Ant Design CSS

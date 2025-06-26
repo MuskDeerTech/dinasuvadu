@@ -1,5 +1,4 @@
 
-export const revalidate = 60;
 import axios from "axios";
 import Link from "next/link";
 import { Space } from "antd";
