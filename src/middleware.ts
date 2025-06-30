@@ -11,9 +11,10 @@ export function middleware(request: NextRequest) {
   // Add pathname to response headers
   response.headers.set('x-current-pathname', pathname);
 
-  // Redirect /rss and /rss.xml to /feed
-  if (pathname === '/rss' || pathname === '/rss.xml') {
-    return NextResponse.redirect(new URL('/feed', url));
+  // Redirect /rss and /rss.xml to /feed, preserving path segments
+  if (pathname.endsWith('/rss') || pathname.endsWith('/rss.xml')) {
+    const newPath = pathname.replace(/\/(rss|rss\.xml)$/, '/feed');
+    return NextResponse.redirect(new URL(newPath, url));
   }
 
   // Sitemap rewrite logic

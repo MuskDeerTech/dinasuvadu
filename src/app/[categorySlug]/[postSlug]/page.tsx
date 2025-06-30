@@ -1316,7 +1316,7 @@ export default async function PostOrSubCategoryPage({
 }
 
 export async function generateStaticParams() {
-  const params: { categorySlug: string; postSlug: string }[] = [];
+  const params: { categorySlug: string; postSlug: string, id?: string }[] = [];
   try {
     const categoryRes = await axios.get(
       `${apiUrl}/api/categories?limit=1000&depth=2`
@@ -1349,7 +1349,11 @@ export async function generateStaticParams() {
               : category.parent;
           if (parent && parent.slug) categorySlug = parent.slug;
         }
-        params.push({ categorySlug, postSlug: post.slug });
+       params.push({
+          categorySlug,
+          postSlug: post.slug,
+          id: post.id, 
+        });
       }
     }
     return params;

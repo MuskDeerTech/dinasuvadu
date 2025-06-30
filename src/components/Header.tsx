@@ -53,9 +53,12 @@ export default function Header({ categories }: HeaderProps) {
     })
     .slice(0, 9);
 
-  const getSelectedKey = () => {
-    if (pathname === "/") return "home";
-    const segments = pathname.split("/").filter(Boolean);
+ const getSelectedKey = () => {
+  if (pathname === "/") return "home";
+  const segments = pathname.split("/").filter(Boolean);
+
+  // Check if it's a category listing page (e.g., /category-slug or /parent-slug/category-slug)
+  if (segments.length === 1 || segments.length === 2) {
     for (const category of sortedCategories) {
       const parentSlug =
         category.parent && typeof category.parent !== "string"
@@ -66,21 +69,11 @@ export default function Header({ categories }: HeaderProps) {
         : `/${category.slug}`;
 
       if (pathname === categoryPath) return category.id;
-
-      if (segments.length === 2 || segments.length === 3) {
-        const urlCategorySlug = segments[0];
-        const urlSubCategorySlug = segments.length === 3 ? segments[1] : null;
-
-        const matchesCategory = parentSlug
-          ? urlCategorySlug === parentSlug &&
-            urlSubCategorySlug === category.slug
-          : urlCategorySlug === category.slug;
-
-        if (matchesCategory) return category.id;
-      }
     }
-    return "";
-  };
+  }
+  // Return empty string for post pages or other routes
+  return "";
+};
 
   useEffect(() => {
     const handleScroll = () => {
