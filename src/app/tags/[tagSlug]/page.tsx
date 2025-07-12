@@ -1,4 +1,4 @@
-export const dynamic = 'force-static' ;
+// export const dynamic = 'force-static' ;
 import axios from "axios";
 import Link from "next/link";
 import "antd/dist/reset.css"; // Import Ant Design CSS
