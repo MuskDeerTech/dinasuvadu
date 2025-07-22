@@ -121,7 +121,7 @@ export default async function CategoryPage({
           }),
         }}
       />
-      <div className="site site-main">
+      <div className="site site-main one">
         <nav aria-label="Breadcrumb" className="mb-8 text-sm font-medium text-gray-500">
           <div className="flex items-center breadcrumbs">
             <Link href="/" className="text-blue-600 hover:text-blue-800 transition-colors">
