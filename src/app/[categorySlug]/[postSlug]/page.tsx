@@ -905,28 +905,46 @@ export default async function PostOrSubCategoryPage({
 }
 
 export async function generateStaticParams() {
-  const params: { categorySlug: string; postSlug: string; id?: string }[] = [];
+  const params: { categorySlug: string; postSlug: string; page?: string }[] = [];
   try {
     const categoryRes = await axios.get(
       `${apiUrl}/api/categories?limit=1000&depth=2`
     );
     const categories: Category[] = categoryRes.data.docs || [];
+
     for (const category of categories) {
       if (category.slug) {
-        params.push({ categorySlug: category.slug, postSlug: category.slug });
+        // Handle subcategories
         if (category.parent) {
           const parent =
             typeof category.parent === "string"
               ? await fetchParentCategory(category.parent)
               : category.parent;
           if (parent && parent.slug) {
+            // Fetch total posts for the subcategory
+            const { total } = await fetchPostsByCategory(category.slug, 1, 10);
+            const totalPages = Math.ceil(total / 10);
+            const maxPagesToPreRender = Math.min(totalPages, 5);
+
+            // First page
             params.push({ categorySlug: parent.slug, postSlug: category.slug });
+
+            // Additional pages
+            for (let page = 2; page <= maxPagesToPreRender; page++) {
+              params.push({
+                categorySlug: parent.slug,
+                postSlug: category.slug,
+                page: page.toString(),
+              });
+            }
           }
         }
       }
     }
+
     const postRes = await axios.get(`${apiUrl}/api/posts?limit=1000&depth=3`);
     const posts: Post[] = postRes.data.docs || [];
+
     for (const post of posts) {
       const category = post.categories?.[0];
       if (category) {
@@ -941,10 +959,10 @@ export async function generateStaticParams() {
         params.push({
           categorySlug,
           postSlug: post.slug,
-          id: post.id,
         });
       }
     }
+
     return params;
   } catch (error) {
     console.error("Failed to generate static params:", error);

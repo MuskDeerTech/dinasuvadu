@@ -364,14 +364,29 @@ export async function generateStaticParams() {
     const res = await axios.get(`${apiUrl}/api/categories?limit=1000&depth=2`);
     const data = await res.data;
 
-    const params = data.docs
-      .filter((category: Category) => !category.parent)
-      .map((category: Category) => ({
-        categorySlug: category.slug,
-      }));
+    const params: { categorySlug: string; page?: string }[] = [];
+    const categories: Category[] = data.docs.filter(
+      (category: Category) => !category.parent
+    );
+
+    for (const category of categories) {
+      // Fetch total number of posts to calculate total pages
+      const { total } = await fetchPostsByCategory(category.id, 1, 10);
+      const totalPages = Math.ceil(total / 10); // Assuming limit=10
+      const maxPagesToPreRender = Math.min(totalPages, 5); // Pre-render up to 5 pages
+
+      // Generate params for the first page (no ?page query)
+      params.push({ categorySlug: category.slug });
+
+      // Generate params for additional pages (e.g., ?page=2, ?page=3)
+      for (let page = 2; page <= maxPagesToPreRender; page++) {
+        params.push({ categorySlug: category.slug, page: page.toString() });
+      }
+    }
 
     return params;
   } catch (error) {
+    console.error("Failed to generate static params:", error);
     return [];
   }
 }
