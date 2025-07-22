@@ -11,7 +11,7 @@ type Category = {
   parent?: { id: string; slug: string; title: string } | string;
 };
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://admin.dinasuvadu.com/";
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://editor.dinasuvadu.com/";
 
 async function fetchCategories(): Promise<Category[]> {
   try {
@@ -29,10 +29,13 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const categories = await fetchCategories();
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://dev.dinasuvadu.com";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://sub.dinasuvadu.com";
 
   return (
     <html lang="ta" suppressHydrationWarning>
+      <head>
+        <link rel="preload" href="https://platform.twitter.com/widgets.js" as="script" />
+      </head>
       <body suppressHydrationWarning>
         <script
           type="application/ld+json"

@@ -3,8 +3,9 @@ import Link from "next/link";
 import Text from "antd/es/typography/Text";
 import { notFound } from "next/navigation";
 import Seo from "../../../../components/Seo";
+import TwitterEmbedClient from "./TwitterEmbedClient"; // Import the Client Component
 
-// Type definitions
+// Type definitions (unchanged)
 type RichTextChildBase = {
   text: string;
   bold?: boolean;
@@ -521,6 +522,10 @@ export default async function SubCategoryPostPage({
                   ));
                 }
               } else if (block.type === "block" && block.fields?.blockType === "embed") {
+                // Check if the URL contains Twitter embed HTML
+                if (block.fields.url.includes("<blockquote class=\"twitter-tweet\"")) {
+                  return <TwitterEmbedClient key={index} html={block.fields.url} />;
+                }
                 return (
                   <div key={index} className="mb-12" dangerouslySetInnerHTML={{ __html: block.fields.url }} />
                 );
