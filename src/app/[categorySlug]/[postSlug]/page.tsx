@@ -222,11 +222,15 @@ function extractPlainTextFromRichText(content: Post["content"]): string {
 
 // Fetch a category by slug
 async function fetchCategoryBySlug(slug: string): Promise<Category | null> {
-  const res = await fetch(`${apiUrl}/api/categories?where[slug][equals]=${slug}&depth=2`, {
-    next: { revalidate: 900 },
-  });
-  const data = await res.json();
-  return data.docs?.[0] || null;
+  try {
+    const response = await axios.get(
+      `${apiUrl}/api/categories?where[slug][equals]=${slug}&depth=2`
+    );
+    return response.data.docs[0] || null;
+  } catch (error) {
+    console.error(`Failed to fetch category ${slug}:`, error);
+    return null;
+  }
 }
 
 // Fetch parent category details by ID
@@ -249,11 +253,15 @@ async function fetchParentCategory(
 
 // Fetch a single post by slug
 async function fetchPost(slug: string): Promise<Post | null> {
-  const res = await fetch(`${apiUrl}/api/posts?where[slug][equals]=${slug}&depth=3`, {
-    next: { revalidate: 900 },
-  });
-  const data = await res.json();
-  return data.docs?.[0] || null;
+  try {
+    const response = await axios.get(
+      `${apiUrl}/api/posts?where[slug][equals]=${slug}&depth=3`
+    );
+    return response.data.docs[0] || null;
+  } catch (error) {
+    console.error(`Failed to fetch post ${slug}:`, error);
+    return null;
+  }
 }
 
 // Fetch posts by category slug (using category ID) with pagination
