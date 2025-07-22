@@ -1,6 +1,3 @@
-// export const dynamic = 'force-static' ;
-export const revalidate = 60;
-import axios from "axios";
 import Link from "next/link";
 import Text from "antd/es/typography/Text";
 import "antd/dist/reset.css";
@@ -8,42 +5,18 @@ import { notFound } from "next/navigation";
 import Seo from "../../components/Seo";
 import ShareButton from "../../components/ShareButton";
 
-// Type definitions (aligned with provided files)
-type Media = {
-  url: string;
-  alt?: string;
-  caption?: string;
-};
-
-type Tag = {
-  id: string;
-  name: string;
-  slug: string;
-};
-
-type Author = {
-  id: string;
-  name: string;
-  slug: string;
-};
-
-type Category = {
-  id: string;
-  title?: string;
-  slug: string;
-  parent?: { id: string; slug: string; title: string } | string | null;
-};
-
+// Type definitions
+type Media = { url: string; alt?: string; caption?: string };
+type Tag = { id: string; name: string; slug: string };
+type Author = { id: string; name: string; slug: string };
+type Category = { id: string; title?: string; slug: string; parent?: { id: string; slug: string; title: string } | string | null };
 type Post = {
   id: string;
   title: string;
   slug: string;
   publishedAt: string;
   heroImage?: Media;
-  meta?: {
-    description?: string;
-    image?: Media;
-  };
+  meta?: { description?: string; image?: Media };
   categories?: Category[];
   populatedAuthors?: Author[];
   tags?: Tag[];
@@ -52,71 +25,43 @@ type Post = {
 // API base URL
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-// Helper function to get the image URL with proper base URL
+// Helper function
 function getImageUrl(url: string | undefined): string | null {
   if (!url) return null;
   return url.startsWith("http") ? url : `${apiUrl}${url}`;
 }
 
-// Fetch a category by slug
+// Fetch functions using fetch with caching
 async function fetchCategoryBySlug(slug: string): Promise<Category | null> {
-  try {
-    const response = await axios.get(
-      `${apiUrl}/api/categories?where[slug][equals]=${slug}&depth=2`
-    );
-    return response.data.docs[0] || null;
-  } catch (error) {
-    return null;
-  }
+  const res = await fetch(`${apiUrl}/api/categories?where[slug][equals]=${slug}&depth=2`, {
+    next: { revalidate: 900, tags: ['categories'] },
+  });
+  const data = await res.json();
+  return data.docs?.[0] || null;
 }
 
-// Fetch category details by ID
-async function fetchCategoryById(
-  categoryId: string
-): Promise<{ title: string } | null> {
-  try {
-    const res = await axios.get(
-      `${apiUrl}/api/categories/${categoryId}?depth=1`
-    );
-    return res.data || null
-      ? {
-          title: res.data.title || "Uncategorized",
-        }
-      : null;
-  } catch (err) {
-    return null;
-  }
+async function fetchCategoryById(categoryId: string): Promise<{ title: string } | null> {
+  const res = await fetch(`${apiUrl}/api/categories/${categoryId}?depth=1`, {
+    next: { revalidate: 900, tags: ['categories'] },
+  });
+  const data = await res.json();
+  return data && data.title ? { title: data.title || "Uncategorized" } : null;
 }
 
-// Fetch posts by category ID with pagination
-async function fetchPostsByCategory(
-  categoryId: string,
-  page: number = 1,
-  limit: number = 10
-): Promise<{ posts: Post[]; total: number }> {
-  try {
-    const response = await axios.get(
-      `${apiUrl}/api/posts?where[categories][in]=${categoryId}&sort=-publishedAt&depth=2&limit=${limit}&page=${page}`
-    );
-    return {
-      posts: response.data.docs || [],
-      total: response.data.totalDocs || 0,
-    };
-  } catch (error) {
-    return { posts: [], total: 0 };
-  }
+async function fetchPostsByCategory(categoryId: string, page: number, limit: number = 10): Promise<{ posts: Post[]; total: number }> {
+  const res = await fetch(`${apiUrl}/api/posts?where[categories][in]=${categoryId}&sort=-publishedAt&depth=2&limit=${limit}&page=${page}`, {
+    next: { revalidate: 900, tags: [`posts-${categoryId}`] },
+  });
+  const data = await res.json();
+  return { posts: data.docs || [], total: data.totalDocs || 0 };
 }
 
-// Fetch subcategories by parent category ID
 async function fetchSubCategories(parentId: string): Promise<Category[]> {
-  try {
-    const response = await axios.get(
-      `${apiUrl}/api/categories?where[parent][equals]=${parentId}&depth=1&limit=100`
-    );
-    return response.data.docs || [];
-  } catch (error) {
-    return [];
-  }
+  const res = await fetch(`${apiUrl}/api/categories?where[parent][equals]=${parentId}&depth=1&limit=100`, {
+    next: { revalidate: 900, tags: ['categories'] },
+  });
+  const data = await res.json();
+  return data.docs || [];
 }
 
 export default async function CategoryPage({
@@ -131,44 +76,28 @@ export default async function CategoryPage({
   const page = parseInt(query.page || "1", 10);
   const limit = 10;
 
-  // Fetch the parent category
+  // Fetch data with page as an argument
   const category = await fetchCategoryBySlug(categorySlug);
-  if (!category) {
-    notFound();
-  }
+  if (!category) notFound();
 
-  // Ensure it's a top-level category (no parent)
-  if (category.parent) {
-    notFound();
-  }
+  if (category.parent) notFound();
 
-  // Fetch category title
   let categoryTitle = category.title || "Uncategorized";
   if (!category.title) {
     const fetchedCategory = await fetchCategoryById(category.id);
-    if (fetchedCategory) {
-      categoryTitle = fetchedCategory.title;
-    }
+    if (fetchedCategory) categoryTitle = fetchedCategory.title;
   }
 
-  // Fetch posts for the category
   const { posts, total } = await fetchPostsByCategory(category.id, page, limit);
   const totalPages = Math.ceil(total / limit);
 
-  // Fetch subcategories
   const subCategories = await fetchSubCategories(category.id);
-
-  // Calculate the pathname
   const pathname = `/${categorySlug}${page > 1 ? `?page=${page}` : ""}`;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://dev.dinasuvadu.com";
 
   return (
     <>
-      <Seo
-        pageType="category"
-        categoryTitle={categoryTitle}
-        pathname={pathname}
-      />
+      <Seo pageType="category" categoryTitle={categoryTitle} pathname={pathname} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -186,23 +115,16 @@ export default async function CategoryPage({
                 name: post.title,
                 url: subCategories.length > 0
                   ? `${baseUrl}/${categorySlug}/${post.categories?.[0]?.slug || 'uncategorized'}/${post.slug}`
-                    : `${baseUrl}/${categorySlug}/${post.slug}`,
+                  : `${baseUrl}/${categorySlug}/${post.slug}`,
               })),
             },
           }),
         }}
       />
       <div className="site site-main">
-        {/* Breadcrumbs */}
-        <nav
-          aria-label="Breadcrumb"
-          className="mb-8 text-sm font-medium text-gray-500"
-        >
+        <nav aria-label="Breadcrumb" className="mb-8 text-sm font-medium text-gray-500">
           <div className="flex items-center breadcrumbs">
-            <Link
-              href="/"
-              className="text-blue-600 hover:text-blue-800 transition-colors"
-            >
+            <Link href="/" className="text-blue-600 hover:text-blue-800 transition-colors">
               Home
             </Link>
             <span className="text-gray-400">{">"}</span>
@@ -210,13 +132,10 @@ export default async function CategoryPage({
           </div>
         </nav>
 
-        {/* Category Header */}
         <header className="mb-10">
           <h1 className="category-title">{categoryTitle}</h1>
         </header>
 
-
-        {/* Posts Grid */}
         {posts.length > 0 ? (
           <>
             <div className="category-grid">
@@ -243,17 +162,13 @@ export default async function CategoryPage({
                         >
                           <h3 className="post-title-1">{post.title}</h3>
                           {post.meta?.description && (
-                            <p className="post-description">
-                              {post.meta.description}
-                            </p>
+                            <p className="post-description">{post.meta.description}</p>
                           )}
                         </Link>
                         <div className="post-first-tag">
                           {(post.tags ?? []).length > 0 && (
                             <Link href={`/tags/${(post.tags ?? [])[0].slug}`}>
-                              <span className="text-blue-600 hover:underline">
-                                {(post.tags ?? [])[0].name}
-                              </span>
+                              <span className="text-blue-600 hover:underline">{(post.tags ?? [])[0].name}</span>
                             </Link>
                           )}
                           <ShareButton
@@ -290,59 +205,30 @@ export default async function CategoryPage({
               })}
             </div>
 
-            {/* Pagination Controls */}
             {totalPages > 1 && (
               <div className="flex justify-center space-x-2 mt-8 web-stories-pagination">
                 {page > 1 && (
-                  <Link
-                    href={`/${categorySlug}?page=${page - 1}`}
-                    className="pagination-link"
-                  >
+                  <Link href={`/${categorySlug}?page=${page - 1}`} className="pagination-link">
                     Prev
                   </Link>
                 )}
-
-                {/* First Page */}
-                <Link
-                  href={`/${categorySlug}?page=1`}
-                  className={`pagination-link ${page === 1 ? "active" : ""}`}
-                >
+                <Link href={`/${categorySlug}?page=1`} className={`pagination-link ${page === 1 ? "active" : ""}`}>
                   1
                 </Link>
-
-                {/* Ellipsis after first page */}
                 {page > 2 && <span className="pagination-ellipsis">…</span>}
-
-                {/* Current Page */}
                 {page !== 1 && page !== totalPages && (
-                  <Link
-                    href={`/${categorySlug}?page=${page}`}
-                    className="pagination-link active"
-                  >
+                  <Link href={`/${categorySlug}?page=${page}`} className="pagination-link active">
                     {page}
                   </Link>
                 )}
-
-                {/* Ellipsis before last page */}
-                {page < totalPages - 1 && (
-                  <span className="pagination-ellipsis">…</span>
-                )}
-
-                {/* Last Page */}
+                {page < totalPages - 1 && <span className="pagination-ellipsis">…</span>}
                 {totalPages > 1 && (
-                  <Link
-                    href={`/${categorySlug}?page=${totalPages}`}
-                    className={`pagination-link ${page === totalPages ? "active" : ""}`}
-                  >
+                  <Link href={`/${categorySlug}?page=${totalPages}`} className={`pagination-link ${page === totalPages ? "active" : ""}`}>
                     {totalPages}
                   </Link>
                 )}
-
                 {page < totalPages && (
-                  <Link
-                    href={`/${categorySlug}?page=${page + 1}`}
-                    className="pagination-link"
-                  >
+                  <Link href={`/${categorySlug}?page=${page + 1}`} className="pagination-link">
                     Next
                   </Link>
                 )}
@@ -350,9 +236,7 @@ export default async function CategoryPage({
             )}
           </>
         ) : (
-          <p className="text-gray-600 text-center">
-            No posts available in this category.
-          </p>
+          <p className="text-gray-600 text-center">No posts available in this category.</p>
         )}
       </div>
     </>
@@ -360,29 +244,16 @@ export default async function CategoryPage({
 }
 
 export async function generateStaticParams() {
-  try {
-    const res = await axios.get(`${apiUrl}/api/categories?limit=1000&depth=2`);
-    const data = await res.data;
+  const res = await fetch(`${apiUrl}/api/categories?limit=1000&depth=2`, {
+    next: { revalidate: 900, tags: ['categories'] },
+  });
+  const data = await res.json();
 
-    const params: { categorySlug: string; page?: string }[] = [];
-    const categories: Category[] = data.docs.filter(
-      (category: Category) => !category.parent
-    );
+  const params = data.docs
+    .filter((category: Category) => !category.parent)
+    .map((category: Category) => ({
+      categorySlug: category.slug,
+    }));
 
-    for (const category of categories) {
-      const { total } = await fetchPostsByCategory(category.id, 1, 10);
-      const totalPages = Math.ceil(total / 10);
-      const maxPagesToPreRender = Math.min(totalPages, 5);
-
-      params.push({ categorySlug: category.slug });
-      for (let page = 2; page <= maxPagesToPreRender; page++) {
-        params.push({ categorySlug: category.slug, page: page.toString() });
-      }
-    }
-
-    return params;
-  } catch (error) {
-    console.error("Failed to generate static params:", error);
-    return [];
-  }
+  return params;
 }
