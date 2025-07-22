@@ -1,4 +1,5 @@
 // export const dynamic = 'force-static';
+
 import axios from "axios";
 import Link from "next/link";
 import Text from "antd/es/typography/Text";

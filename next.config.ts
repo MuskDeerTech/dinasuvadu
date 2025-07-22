@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
     // Skip linting during build (temporary workaround to isolate the issue)
     ignoreDuringBuilds: false,
   },
+  experimental: {
+    useCache: true, // Enables the 'use cache' directive
+  },
 };
 
 export default nextConfig;
