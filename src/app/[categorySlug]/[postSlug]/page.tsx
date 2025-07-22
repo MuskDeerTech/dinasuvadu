@@ -371,7 +371,7 @@ export default async function PostOrSubCategoryPage({
 
     const { posts, total } = await fetchPostsByCategory(postSlug, page, limit);
     const totalPages = Math.ceil(total / limit);
-
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://sub.dinasuvadu.com";
     return (
       <>
         <Seo pageType="category" categoryTitle={subCategoryTitle} />
@@ -439,11 +439,11 @@ export default async function PostOrSubCategoryPage({
                                 </span>
                               </Link>
                             )}
-                            <ShareButton
-                              url={`http://localhost:3001/${categorySlug}/${postSlug}/${post.slug}`}
-                              title={post.title}
-                              description={post.meta?.description}
-                            />
+                           <ShareButton
+  url={`${baseUrl}/${categorySlug}/${postSlug}/${post.slug}`}
+  title={post.title}
+  description={post.meta?.description}
+/>
                           </div>
                         </div>
 
@@ -914,22 +914,17 @@ export async function generateStaticParams() {
 
     for (const category of categories) {
       if (category.slug) {
-        // Handle subcategories
         if (category.parent) {
           const parent =
             typeof category.parent === "string"
               ? await fetchParentCategory(category.parent)
               : category.parent;
           if (parent && parent.slug) {
-            // Fetch total posts for the subcategory
             const { total } = await fetchPostsByCategory(category.slug, 1, 10);
             const totalPages = Math.ceil(total / 10);
             const maxPagesToPreRender = Math.min(totalPages, 5);
 
-            // First page
             params.push({ categorySlug: parent.slug, postSlug: category.slug });
-
-            // Additional pages
             for (let page = 2; page <= maxPagesToPreRender; page++) {
               params.push({
                 categorySlug: parent.slug,
