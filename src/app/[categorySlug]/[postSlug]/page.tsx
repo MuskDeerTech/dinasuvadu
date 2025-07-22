@@ -5,6 +5,7 @@ import "antd/dist/reset.css"; // Import Ant Design CSS
 import { notFound } from "next/navigation";
 import ShareButton from "../../../components/ShareButton";
 import Seo from "../../../components/Seo";
+import TwitterEmbedClient from "../[postSlug]/[subPostSlug]/TwitterEmbedClient"; // Import the Client Component
 
 // Type definitions
 type RichTextChildBase = {
@@ -338,8 +339,6 @@ export default async function PostOrSubCategoryPage({
     const { posts, total } = await fetchPostsByCategory(postSlug, page, limit);
     const totalPages = Math.ceil(total / limit);
 
-
-
     return (
       <>
         <Seo pageType="category" categoryTitle={subCategoryTitle} />
@@ -552,7 +551,6 @@ export default async function PostOrSubCategoryPage({
     ? extractPlainTextFromRichText(post.content)
     : "";
 
-
   return (
     <>
       <Seo
@@ -736,6 +734,9 @@ export default async function PostOrSubCategoryPage({
                     );
                   }
                 } else if (block.type === "block" && block.fields?.blockType === "embed") {
+                  if (block.fields.url.includes("<blockquote class=\"twitter-tweet\"")) {
+                    return <TwitterEmbedClient key={index} html={block.fields.url} />;
+                  }
                   return (
                     <div key={index} className="mb-12" dangerouslySetInnerHTML={{ __html: block.fields.url }} />
                   );
@@ -746,6 +747,48 @@ export default async function PostOrSubCategoryPage({
                       <div key={index} className="mb-12" dangerouslySetInnerHTML={{ __html: embedHtml }} />
                     );
                   }
+                }
+                return null;
+              })
+            ) : post.layout && post.layout.length > 0 ? (
+              post.layout.map((block, index) => {
+                if (block.blockType === "mediaBlock" && block.media) {
+                  return null; // Already handled in hero image
+                } else if (block.blockType === "content" && block.content) {
+                  return (
+                    <section key={index} className="mb-12">
+                      <div className="prose prose-lg prose-gray max-w-none text-gray-800 leading-relaxed">
+                        {block.content.split("\n").map((para, i) => (
+                          <p className="post-desc" key={i}>
+                            {para}
+                          </p>
+                        ))}
+                      </div>
+                    </section>
+                  );
+                } else if (
+                  block.blockType === "video" &&
+                  "media" in block &&
+                  block.media?.url
+                ) {
+                  const embedHtml = generateEmbedHtml(block.media.url);
+                  if (embedHtml) {
+                    return (
+                      <div key={index} className="mb-12" dangerouslySetInnerHTML={{ __html: embedHtml }} />
+                    );
+                  }
+                } else if (
+                  "type" in block &&
+                  block.type === "block" &&
+                  block.blockType === "embed" &&
+                  block.fields?.url
+                ) {
+                  if (block.fields.url.includes("<blockquote class=\"twitter-tweet\"")) {
+                    return <TwitterEmbedClient key={index} html={block.fields.url} />;
+                  }
+                  return (
+                    <div key={index} className="mb-12" dangerouslySetInnerHTML={{ __html: block.fields.url }} />
+                  );
                 }
                 return null;
               })

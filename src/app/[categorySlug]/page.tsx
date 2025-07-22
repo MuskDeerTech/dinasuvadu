@@ -1,3 +1,4 @@
+export const revalidate = 10; // Revalidate every 60 seconds
 import Link from "next/link";
 import Text from "antd/es/typography/Text";
 import "antd/dist/reset.css";
