@@ -88,8 +88,8 @@ export default async function CategoryPage({
     if (fetchedCategory) categoryTitle = fetchedCategory.title;
   }
 
-  const { posts} = await fetchPostsByCategory(category.id, page, limit);
-  // const totalPages = Math.ceil(total / limit);
+  const { posts, total } = await fetchPostsByCategory(category.id, page, limit);
+  const totalPages = Math.ceil(total / limit);
 
   const subCategories = await fetchSubCategories(category.id);
   const pathname = `/${categorySlug}${page > 1 ? `?page=${page}` : ""}`;
@@ -205,6 +205,35 @@ export default async function CategoryPage({
               })}
             </div>
 
+            {totalPages > 1 && (
+              <div className="flex justify-center space-x-2 mt-8 web-stories-pagination">
+                {page > 1 && (
+                  <Link href={`/${categorySlug}?page=${page - 1}`} className="pagination-link">
+                    Prev
+                  </Link>
+                )}
+                <Link href={`/${categorySlug}?page=1`} className={`pagination-link ${page === 1 ? "active" : ""}`}>
+                  1
+                </Link>
+                {page > 2 && <span className="pagination-ellipsis">…</span>}
+                {page !== 1 && page !== totalPages && (
+                  <Link href={`/${categorySlug}?page=${page}`} className="pagination-link active">
+                    {page}
+                  </Link>
+                )}
+                {page < totalPages - 1 && <span className="pagination-ellipsis">…</span>}
+                {totalPages > 1 && (
+                  <Link href={`/${categorySlug}?page=${totalPages}`} className={`pagination-link ${page === totalPages ? "active" : ""}`}>
+                    {totalPages}
+                  </Link>
+                )}
+                {page < totalPages && (
+                  <Link href={`/${categorySlug}?page=${page + 1}`} className="pagination-link">
+                    Next
+                  </Link>
+                )}
+              </div>
+            )}
           </>
         ) : (
           <p className="text-gray-600 text-center">No posts available in this category.</p>
