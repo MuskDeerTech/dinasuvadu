@@ -6,7 +6,7 @@ export function middleware(request: NextRequest) {
 
   // Set Cache-Control header for all pages
   const response = NextResponse.next();
-  response.headers.set('Cache-Control', 's-maxage=60, stale-while-revalidate');
+  response.headers.set('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=900'); // Increased s-maxage for testing
 
   // Add pathname to response headers
   response.headers.set('x-current-pathname', pathname);
