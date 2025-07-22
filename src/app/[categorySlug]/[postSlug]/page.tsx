@@ -1,6 +1,4 @@
 // export const dynamic = 'force-static';
-export const revalidate = 60;
-import axios from "axios";
 import Link from "next/link";
 import Text from "antd/es/typography/Text";
 import "antd/dist/reset.css"; // Import Ant Design CSS
@@ -220,106 +218,74 @@ function extractPlainTextFromRichText(content: Post["content"]): string {
     .join("\n");
 }
 
-// Fetch a category by slug
+// Fetch functions using fetch with caching
 async function fetchCategoryBySlug(slug: string): Promise<Category | null> {
-  try {
-    const response = await axios.get(
-      `${apiUrl}/api/categories?where[slug][equals]=${slug}&depth=2`
-    );
-    return response.data.docs[0] || null;
-  } catch (error) {
-    console.error(`Failed to fetch category ${slug}:`, error);
-    return null;
-  }
+  const res = await fetch(`${apiUrl}/api/categories?where[slug][equals]=${slug}&depth=2`, {
+    next: { revalidate: 900, tags: ['categories'] },
+  });
+  const data = await res.json();
+  return data.docs?.[0] || null;
 }
 
-// Fetch parent category details by ID
-async function fetchParentCategory(
-  parentId: string
-): Promise<{ slug: string; title: string } | null> {
-  try {
-    const res = await axios.get(`${apiUrl}/api/categories/${parentId}?depth=1`);
-    return res.data
-      ? {
-          slug: res.data.slug || "uncategorized",
-          title: res.data.title || "Uncategorized",
-        }
-      : null;
-  } catch (err) {
-    console.error(`Failed to fetch parent category ${parentId}:`, err);
-    return null;
-  }
+async function fetchParentCategory(parentId: string): Promise<{ slug: string; title: string } | null> {
+  const res = await fetch(`${apiUrl}/api/categories/${parentId}?depth=1`, {
+    next: { revalidate: 900, tags: ['categories'] },
+  });
+  const data = await res.json();
+  return data
+    ? {
+        slug: data.slug || "uncategorized",
+        title: data.title || "Uncategorized",
+      }
+    : null;
 }
 
-// Fetch a single post by slug
 async function fetchPost(slug: string): Promise<Post | null> {
-  try {
-    const response = await axios.get(
-      `${apiUrl}/api/posts?where[slug][equals]=${slug}&depth=3`
-    );
-    return response.data.docs[0] || null;
-  } catch (error) {
-    console.error(`Failed to fetch post ${slug}:`, error);
-    return null;
-  }
+  const res = await fetch(`${apiUrl}/api/posts?where[slug][equals]=${slug}&depth=3`, {
+    next: { revalidate: 900, tags: ['posts'] },
+  });
+  const data = await res.json();
+  return data.docs?.[0] || null;
 }
 
-// Fetch posts by category slug (using category ID) with pagination
-async function fetchPostsByCategory(
-  categorySlug: string,
-  page: number = 1,
-  limit: number = 10
-): Promise<{ posts: Post[]; total: number }> {
-  try {
-    const categoryResponse = await axios.get(
-      `${apiUrl}/api/categories?where[slug][equals]=${categorySlug}&depth=0`
-    );
-    const category = categoryResponse.data.docs[0] || null;
-    if (!category) {
-      return { posts: [], total: 0 };
-    }
-    const categoryId = category.id;
-    const response = await axios.get(
-      `${apiUrl}/api/posts?where[categories][in]=${categoryId}&sort=-publishedAt&depth=2&limit=${limit}&page=${page}`
-    );
-    return {
-      posts: response.data.docs || [],
-      total: response.data.totalDocs || 0,
-    };
-  } catch (error) {
-    console.error(`Failed to fetch posts for category ${categorySlug}:`, error);
+async function fetchPostsByCategory(categorySlug: string, page: number = 1, limit: number = 10): Promise<{ posts: Post[]; total: number }> {
+  const res = await fetch(`${apiUrl}/api/categories?where[slug][equals]=${categorySlug}&depth=0`, {
+    next: { revalidate: 900, tags: ['categories'] },
+  });
+  const categoryData = await res.json();
+  const category = categoryData.docs?.[0] || null;
+  if (!category) {
     return { posts: [], total: 0 };
   }
+  const categoryId = category.id;
+  const postsRes = await fetch(`${apiUrl}/api/posts?where[categories][in]=${categoryId}&sort=-publishedAt&depth=2&limit=${limit}&page=${page}`, {
+    next: { revalidate: 900, tags: [`posts-${categoryId}`] },
+  });
+  const postsData = await postsRes.json();
+  return {
+    posts: postsData.docs || [],
+    total: postsData.totalDocs || 0,
+  };
 }
 
-// Fetch the latest posts (excluding the current post)
 async function fetchLatestPosts(currentPostSlug: string): Promise<Post[]> {
-  try {
-    const response = await axios.get(
-      `${apiUrl}/api/posts?limit=5&sort=-publishedAt&where[slug][not_equals]=${currentPostSlug}&depth=2`
-    );
-    return response.data.docs || [];
-  } catch (error) {
-    console.error(`Failed to fetch latest posts:`, error);
-    return [];
-  }
+  const res = await fetch(`${apiUrl}/api/posts?limit=5&sort=-publishedAt&where[slug][not_equals]=${currentPostSlug}&depth=2`, {
+    next: { revalidate: 900, tags: ['posts'] },
+  });
+  const data = await res.json();
+  return data.docs || [];
 }
 
-// Fetch category details by ID
-async function fetchCategoryById(
-  categoryId: string
-): Promise<{ title: string } | null> {
-  try {
-    const res = await axios.get(`${apiUrl}/api/categories/${categoryId}?depth=1`);
-    return res.data
-      ? {
-          title: res.data.title || "Uncategorized",
-        }
-      : null;
-  } catch (err) {
-    console.error(`Failed to fetch category ${categoryId}:`, err);
-    return null;
-  }
+async function fetchCategoryById(categoryId: string): Promise<{ title: string } | null> {
+  const res = await fetch(`${apiUrl}/api/categories/${categoryId}?depth=1`, {
+    next: { revalidate: 900, tags: ['categories'] },
+  });
+  const data = await res.json();
+  return data
+    ? {
+        title: data.title || "Uncategorized",
+      }
+    : null;
 }
 
 export default async function PostOrSubCategoryPage({
@@ -371,7 +337,9 @@ export default async function PostOrSubCategoryPage({
 
     const { posts, total } = await fetchPostsByCategory(postSlug, page, limit);
     const totalPages = Math.ceil(total / limit);
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://sub.dinasuvadu.com";
+
+
+
     return (
       <>
         <Seo pageType="category" categoryTitle={subCategoryTitle} />
@@ -439,11 +407,11 @@ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://sub.dinasuvadu.com"
                                 </span>
                               </Link>
                             )}
-                           <ShareButton
-  url={`${baseUrl}/${categorySlug}/${postSlug}/${post.slug}`}
-  title={post.title}
-  description={post.meta?.description}
-/>
+                            <ShareButton
+                              url={`http://localhost:3001/${categorySlug}/${postSlug}/${post.slug}`}
+                              title={post.title}
+                              description={post.meta?.description}
+                            />
                           </div>
                         </div>
 
@@ -584,6 +552,7 @@ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://sub.dinasuvadu.com"
     ? extractPlainTextFromRichText(post.content)
     : "";
 
+
   return (
     <>
       <Seo
@@ -668,7 +637,7 @@ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://sub.dinasuvadu.com"
               </div>
             </div>
 
-          {/* Hero Image */}
+            {/* Hero Image */}
             {(post.layout?.[0]?.blockType === "mediaBlock" &&
               post.layout[0].media) ||
             post.heroImage ? (
@@ -699,87 +668,88 @@ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://sub.dinasuvadu.com"
                 </div>
               </figure>
             ) : null}
-{/* Hero Rich Text */}
-{Array.isArray(post.hero?.richText) &&
-  post.hero.richText.length > 0 && (
-    <section className="prose prose-lg prose-blue max-w-none mb-12 text-gray-800">
-      {post.hero!.richText
-        .filter((block): block is ParagraphBlock => block.type === "paragraph")
-        .map((block, index) => (
-          <p key={index} className="leading-relaxed">
-            {block.children.map((child: RichTextChild, i: number) => {
-              if ("text" in child) {
-                const textChild = child as RichTextChildBase;
-                return (
-                  <span
-                    key={i}
-                    className={`${textChild.bold ? "font-semibold" : ""} ${
-                      textChild.italic ? "italic" : ""
-                    }`}
-                  >
-                    {textChild.text}
-                  </span>
-                );
-              } else if (child.type === "autolink") {
-                const autolinkChild = child as AutolinkChild;
-                return autolinkChild.children.map((nestedChild: RichTextChildBase, j: number) => (
-                  <span
-                    key={`${i}-${j}`}
-                    className={`${nestedChild.bold ? "font-semibold" : ""} ${
-                      nestedChild.italic ? "italic" : ""
-                    }`}
-                  >
-                    {nestedChild.text}
-                  </span>
-                ));
-              }
-              return null;
-            })}
-          </p>
-        ))}
-    </section>
-  )}
 
-{/* Post Content (Fallback if layout is empty) */}
-{(!post.layout || post.layout.length === 0) && post.content?.root?.children?.length ? (
-  post.content.root.children.map((block, index) => {
-    if (block.type === "paragraph" && Array.isArray(block.children)) {
-      const paragraphText = block.children
-        .flatMap((child) =>
-          child.type === "autolink"
-            ? child.children.map((c) => c.text).join("")
-            : child.text || ""
-        )
-        .join("")
-        .trim();
-      if (paragraphText) {
-        return (
-          <section key={index} className="mb-12">
-            <div className="prose prose-lg prose-gray max-w-none text-gray-800 leading-relaxed">
-              {paragraphText.split("\n").map((para, i) => (
-                <p className="post-desc" key={i}>
-                  {para}
-                </p>
-              ))}
-            </div>
-          </section>
-        );
-      }
-    } else if (block.type === "block" && block.fields?.blockType === "embed") {
-      return (
-        <div key={index} className="mb-12" dangerouslySetInnerHTML={{ __html: block.fields.url }} />
-      );
-    } else if (block.type === "block" && block.fields?.blockType === "video") {
-      const embedHtml = generateEmbedHtml(block.fields.url);
-      if (embedHtml) {
-        return (
-          <div key={index} className="mb-12" dangerouslySetInnerHTML={{ __html: embedHtml }} />
-        );
-      }
-    }
-    return null;
-  })
-) : null}
+            {/* Hero Rich Text */}
+            {Array.isArray(post.hero?.richText) &&
+              post.hero.richText.length > 0 && (
+                <section className="prose prose-lg prose-blue max-w-none mb-12 text-gray-800">
+                  {post.hero!.richText
+                    .filter((block): block is ParagraphBlock => block.type === "paragraph")
+                    .map((block, index) => (
+                      <p key={index} className="leading-relaxed">
+                        {block.children.map((child: RichTextChild, i: number) => {
+                          if ("text" in child) {
+                            const textChild = child as RichTextChildBase;
+                            return (
+                              <span
+                                key={i}
+                                className={`${textChild.bold ? "font-semibold" : ""} ${
+                                  textChild.italic ? "italic" : ""
+                                }`}
+                              >
+                                {textChild.text}
+                              </span>
+                            );
+                          } else if (child.type === "autolink") {
+                            const autolinkChild = child as AutolinkChild;
+                            return autolinkChild.children.map((nestedChild: RichTextChildBase, j: number) => (
+                              <span
+                                key={`${i}-${j}`}
+                                className={`${nestedChild.bold ? "font-semibold" : ""} ${
+                                  nestedChild.italic ? "italic" : ""
+                                }`}
+                              >
+                                {nestedChild.text}
+                              </span>
+                            ));
+                          }
+                          return null;
+                        })}
+                      </p>
+                    ))}
+                </section>
+              )}
+
+            {/* Post Content (Fallback if layout is empty) */}
+            {(!post.layout || post.layout.length === 0) && post.content?.root?.children?.length ? (
+              post.content.root.children.map((block, index) => {
+                if (block.type === "paragraph" && Array.isArray(block.children)) {
+                  const paragraphText = block.children
+                    .flatMap((child) =>
+                      child.type === "autolink"
+                        ? child.children.map((c) => c.text).join("")
+                        : child.text || ""
+                    )
+                    .join("")
+                    .trim();
+                  if (paragraphText) {
+                    return (
+                      <section key={index} className="mb-12">
+                        <div className="prose prose-lg prose-gray max-w-none text-gray-800 leading-relaxed">
+                          {paragraphText.split("\n").map((para, i) => (
+                            <p className="post-desc" key={i}>
+                              {para}
+                            </p>
+                          ))}
+                        </div>
+                      </section>
+                    );
+                  }
+                } else if (block.type === "block" && block.fields?.blockType === "embed") {
+                  return (
+                    <div key={index} className="mb-12" dangerouslySetInnerHTML={{ __html: block.fields.url }} />
+                  );
+                } else if (block.type === "block" && block.fields?.blockType === "video") {
+                  const embedHtml = generateEmbedHtml(block.fields.url);
+                  if (embedHtml) {
+                    return (
+                      <div key={index} className="mb-12" dangerouslySetInnerHTML={{ __html: embedHtml }} />
+                    );
+                  }
+                }
+                return null;
+              })
+            ) : null}
 
             {/* Tags */}
             {(post.tags?.length ?? 0) > 0 && (
@@ -905,62 +875,48 @@ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://sub.dinasuvadu.com"
 }
 
 export async function generateStaticParams() {
-  const params: { categorySlug: string; postSlug: string; page?: string }[] = [];
+  const params: { categorySlug: string; postSlug: string; id?: string }[] = [];
   try {
-    const categoryRes = await axios.get(
-      `${apiUrl}/api/categories?limit=1000&depth=2`
-    );
-    const categories: Category[] = categoryRes.data.docs || [];
-
+    const categoryRes = await fetch(`${apiUrl}/api/categories?limit=1000&depth=2`, {
+      next: { revalidate: 900, tags: ['categories'] },
+    });
+    const categories: Category[] = (await categoryRes.json()).docs || [];
     for (const category of categories) {
       if (category.slug) {
+        params.push({ categorySlug: category.slug, postSlug: category.slug });
         if (category.parent) {
-          const parent =
-            typeof category.parent === "string"
-              ? await fetchParentCategory(category.parent)
-              : category.parent;
+          const parent = typeof category.parent === "string"
+            ? await fetchParentCategory(category.parent)
+            : category.parent;
           if (parent && parent.slug) {
-            const { total } = await fetchPostsByCategory(category.slug, 1, 10);
-            const totalPages = Math.ceil(total / 10);
-            const maxPagesToPreRender = Math.min(totalPages, 5);
-
             params.push({ categorySlug: parent.slug, postSlug: category.slug });
-            for (let page = 2; page <= maxPagesToPreRender; page++) {
-              params.push({
-                categorySlug: parent.slug,
-                postSlug: category.slug,
-                page: page.toString(),
-              });
-            }
           }
         }
       }
     }
-
-    const postRes = await axios.get(`${apiUrl}/api/posts?limit=1000&depth=3`);
-    const posts: Post[] = postRes.data.docs || [];
-
+    const postRes = await fetch(`${apiUrl}/api/posts?limit=1000&depth=3`, {
+      next: { revalidate: 900, tags: ['posts'] },
+    });
+    const posts: Post[] = (await postRes.json()).docs || [];
     for (const post of posts) {
       const category = post.categories?.[0];
       if (category) {
         let categorySlug = category.slug || "uncategorized";
         if (category.parent) {
-          const parent =
-            typeof category.parent === "string"
-              ? await fetchParentCategory(category.parent)
-              : category.parent;
+          const parent = typeof category.parent === "string"
+            ? await fetchParentCategory(category.parent)
+            : category.parent;
           if (parent && parent.slug) categorySlug = parent.slug;
         }
         params.push({
           categorySlug,
           postSlug: post.slug,
+          id: post.id,
         });
       }
     }
-
     return params;
   } catch (error) {
-    console.error("Failed to generate static params:", error);
     return [];
   }
 }

@@ -91,6 +91,7 @@ export default async function CategoryPage({
   const { posts, total } = await fetchPostsByCategory(category.id, page, limit);
   const totalPages = Math.ceil(total / limit);
 
+
   const subCategories = await fetchSubCategories(category.id);
   const pathname = `/${categorySlug}${page > 1 ? `?page=${page}` : ""}`;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://dev.dinasuvadu.com";
@@ -205,7 +206,7 @@ export default async function CategoryPage({
               })}
             </div>
 
-            {totalPages > 1 && (
+            {total > 0 && (
               <div className="flex justify-center space-x-2 mt-8 web-stories-pagination">
                 {page > 1 && (
                   <Link href={`/${categorySlug}?page=${page - 1}`} className="pagination-link">
