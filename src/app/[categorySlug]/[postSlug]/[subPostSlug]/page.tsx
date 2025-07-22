@@ -1,4 +1,4 @@
-export const revalidate = 10; // Revalidate every 60 seconds
+export const revalidate = 10; // Revalidate every 10 seconds
 import axios from "axios";
 import Link from "next/link";
 import Text from "antd/es/typography/Text";
@@ -491,37 +491,42 @@ export default async function SubCategoryPostPage({
             {/* Post Content (Plain Text and Embeds) */}
             {post.content?.root?.children.map((block, index) => {
               if (block.type === "paragraph") {
-                const paragraphText = block.children
-                  .flatMap((child) =>
-                    child.type === "autolink"
-                      ? child.children.map((c) => c.text).join("")
-                      : child.text || ""
-                  )
-                  .join("")
-                  .trim();
-                if (paragraphText) {
-                  return (
-                    <section className="mb-12" key={index}>
-                      <div className="prose prose-lg prose-gray max-w-none text-gray-800 leading-relaxed">
-                        {paragraphText.split("\n").map((para, i) => (
-                          <p className="post-desc" key={i}>
-                            {para}
-                          </p>
-                        ))}
-                      </div>
-                    </section>
-                  );
-                }
-                // Render embeds for autolink children
-                const autolinkEmbeds = block.children
-                  .filter((child): child is AutolinkChild => child.type === "autolink")
-                  .map((child) => generateEmbedHtml(child.fields.url))
-                  .filter((html): html is string => html !== null);
-                if (autolinkEmbeds.length > 0) {
-                  return autolinkEmbeds.map((embedHtml, i) => (
-                    <div key={`${index}-${i}`} className="mb-12" dangerouslySetInnerHTML={{ __html: embedHtml }} />
-                  ));
-                }
+                return (
+                  <section className="mb-12" key={index}>
+                    <div className="prose prose-lg prose-gray max-w-none text-gray-800 leading-relaxed">
+                      {block.children.map((child: RichTextChild, j: number) => {
+                        if ("text" in child) {
+                          const textChild = child as RichTextChildBase;
+                          const isBold = textChild.format === 1; // Interpret format 1 as bold
+                          return (
+                            <span
+                              key={`${index}-${j}`}
+                              className={`${isBold ? "font-semibold" : ""}`}
+                            >
+                              {textChild.text}
+                            </span>
+                          );
+                        } else if (child.type === "autolink") {
+                          const autolinkChild = child as AutolinkChild;
+                          return autolinkChild.children.map(
+                            (nestedChild: RichTextChildBase, k: number) => {
+                              const isBold = nestedChild.format === 1; // Interpret format 1 as bold
+                              return (
+                                <span
+                                  key={`${index}-${j}-${k}`}
+                                  className={`${isBold ? "font-semibold" : ""}`}
+                                >
+                                  {nestedChild.text}
+                                </span>
+                              );
+                            }
+                          );
+                        }
+                        return null;
+                      })}
+                    </div>
+                  </section>
+                );
               } else if (block.type === "block" && block.fields?.blockType === "embed") {
                 // Check if the URL contains Twitter embed HTML
                 if (block.fields.url.includes("<blockquote class=\"twitter-tweet\"")) {

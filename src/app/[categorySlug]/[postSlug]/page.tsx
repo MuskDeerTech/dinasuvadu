@@ -709,90 +709,117 @@ export default async function PostOrSubCategoryPage({
               )}
 
             {/* Post Content (Fallback if layout is empty) */}
-            {(!post.layout || post.layout.length === 0) && post.content?.root?.children?.length ? (
-              post.content.root.children.map((block, index) => {
-                if (block.type === "paragraph" && Array.isArray(block.children)) {
-                  const paragraphText = block.children
-                    .flatMap((child) =>
-                      child.type === "autolink"
-                        ? child.children.map((c) => c.text).join("")
-                        : child.text || ""
-                    )
-                    .join("")
-                    .trim();
-                  if (paragraphText) {
-                    return (
-                      <section key={index} className="mb-12">
-                        <div className="prose prose-lg prose-gray max-w-none text-gray-800 leading-relaxed">
-                          {paragraphText.split("\n").map((para, i) => (
-                            <p className="post-desc" key={i}>
-                              {para}
-                            </p>
-                          ))}
-                        </div>
-                      </section>
-                    );
-                  }
-                } else if (block.type === "block" && block.fields?.blockType === "embed") {
-                  if (block.fields.url.includes("<blockquote class=\"twitter-tweet\"")) {
-                    return <TwitterEmbedClient key={index} html={block.fields.url} />;
-                  }
-                  return (
-                    <div key={index} className="mb-12" dangerouslySetInnerHTML={{ __html: block.fields.url }} />
-                  );
-                } else if (block.type === "block" && block.fields?.blockType === "video") {
-                  const embedHtml = generateEmbedHtml(block.fields.url);
-                  if (embedHtml) {
-                    return (
-                      <div key={index} className="mb-12" dangerouslySetInnerHTML={{ __html: embedHtml }} />
-                    );
-                  }
-                }
-                return null;
-              })
-            ) : post.layout && post.layout.length > 0 ? (
-              post.layout.map((block, index) => {
-                if (block.blockType === "mediaBlock" && block.media) {
-                  return null; // Already handled in hero image
-                } else if (block.blockType === "content" && block.content) {
-                  return (
-                    <section key={index} className="mb-12">
-                      <div className="prose prose-lg prose-gray max-w-none text-gray-800 leading-relaxed">
-                        {block.content.split("\n").map((para, i) => (
-                          <p className="post-desc" key={i}>
-                            {para}
-                          </p>
-                        ))}
-                      </div>
-                    </section>
-                  );
-                } else if (
-                  block.blockType === "video" &&
-                  "media" in block &&
-                  block.media?.url
-                ) {
-                  const embedHtml = generateEmbedHtml(block.media.url);
-                  if (embedHtml) {
-                    return (
-                      <div key={index} className="mb-12" dangerouslySetInnerHTML={{ __html: embedHtml }} />
-                    );
-                  }
-                } else if (
-                  "type" in block &&
-                  block.type === "block" &&
-                  block.blockType === "embed" &&
-                  block.fields?.url
-                ) {
-                  if (block.fields.url.includes("<blockquote class=\"twitter-tweet\"")) {
-                    return <TwitterEmbedClient key={index} html={block.fields.url} />;
-                  }
-                  return (
-                    <div key={index} className="mb-12" dangerouslySetInnerHTML={{ __html: block.fields.url }} />
-                  );
-                }
-                return null;
-              })
-            ) : null}
+{(!post.layout || post.layout.length === 0) && post.content?.root?.children?.length ? (
+  post.content.root.children.map((block, index) => {
+    if (block.type === "paragraph" && Array.isArray(block.children)) {
+      const paragraphText = block.children
+        .flatMap((child) =>
+          child.type === "autolink"
+            ? child.children.map((c) => c.text).join("")
+            : child.text || ""
+        )
+        .join("")
+        .trim();
+      if (paragraphText) {
+        return (
+          <section key={index} className="mb-12">
+            <div className="prose prose-lg prose-gray max-w-none text-gray-800 leading-relaxed">
+              {paragraphText.split("\n").map((para, i) => (
+                <p className="post-desc" key={i}>
+                  {block.children.map((child: RichTextChild, j: number) => {
+                    if ("text" in child) {
+                      const textChild = child as RichTextChildBase;
+                      const isBold = textChild.format === 1; // Interpret format 1 as bold
+                      return (
+                        <span
+                          key={`${index}-${j}`}
+                          className={`${isBold ? "font-semibold" : ""}`}
+                        >
+                          {textChild.text}
+                        </span>
+                      );
+                    } else if (child.type === "autolink") {
+                      const autolinkChild = child as AutolinkChild;
+                      return autolinkChild.children.map((nestedChild: RichTextChildBase, k: number) => {
+                        const isBold = nestedChild.format === 1; // Interpret format 1 as bold
+                        return (
+                          <span
+                            key={`${index}-${j}-${k}`}
+                            className={`${isBold ? "font-semibold" : ""}`}
+                          >
+                            {nestedChild.text}
+                          </span>
+                        );
+                      });
+                    }
+                    return null;
+                  })}
+                </p>
+              ))}
+            </div>
+          </section>
+        );
+      }
+    } else if (block.type === "block" && block.fields?.blockType === "embed") {
+      if (block.fields.url.includes("<blockquote class=\"twitter-tweet\"")) {
+        return <TwitterEmbedClient key={index} html={block.fields.url} />;
+      }
+      return (
+        <div key={index} className="mb-12" dangerouslySetInnerHTML={{ __html: block.fields.url }} />
+      );
+    } else if (block.type === "block" && block.fields?.blockType === "video") {
+      const embedHtml = generateEmbedHtml(block.fields.url);
+      if (embedHtml) {
+        return (
+          <div key={index} className="mb-12" dangerouslySetInnerHTML={{ __html: embedHtml }} />
+        );
+      }
+    }
+    return null;
+  })
+) : post.layout && post.layout.length > 0 ? (
+  post.layout.map((block, index) => {
+    if (block.blockType === "mediaBlock" && block.media) {
+      return null; // Already handled in hero image
+    } else if (block.blockType === "content" && block.content) {
+      return (
+        <section key={index} className="mb-12">
+          <div className="prose prose-lg prose-gray max-w-none text-gray-800 leading-relaxed">
+            {block.content.split("\n").map((para, i) => (
+              <p className="post-desc" key={i}>
+                {para}
+              </p>
+            ))}
+          </div>
+        </section>
+      );
+    } else if (
+      block.blockType === "video" &&
+      "media" in block &&
+      block.media?.url
+    ) {
+      const embedHtml = generateEmbedHtml(block.media.url);
+      if (embedHtml) {
+        return (
+          <div key={index} className="mb-12" dangerouslySetInnerHTML={{ __html: embedHtml }} />
+        );
+      }
+    } else if (
+      "type" in block &&
+      block.type === "block" &&
+      block.blockType === "embed" &&
+      block.fields?.url
+    ) {
+      if (block.fields.url.includes("<blockquote class=\"twitter-tweet\"")) {
+        return <TwitterEmbedClient key={index} html={block.fields.url} />;
+      }
+      return (
+        <div key={index} className="mb-12" dangerouslySetInnerHTML={{ __html: block.fields.url }} />
+      );
+    }
+    return null;
+  })
+) : null}
 
             {/* Tags */}
             {(post.tags?.length ?? 0) > 0 && (
