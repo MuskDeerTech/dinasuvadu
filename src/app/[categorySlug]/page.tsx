@@ -1,4 +1,4 @@
-export const revalidate = 10; // Revalidate every 60 seconds
+export const revalidate = 10; // Revalidate every 10 seconds
 import Link from "next/link";
 import Text from "antd/es/typography/Text";
 import "antd/dist/reset.css";
@@ -50,9 +50,18 @@ async function fetchCategoryById(categoryId: string): Promise<{ title: string } 
 }
 
 async function fetchPostsByCategory(categoryId: string, page: number, limit: number = 10): Promise<{ posts: Post[]; total: number }> {
-  const res = await fetch(`${apiUrl}/api/posts?where[categories][in]=${categoryId}&sort=-publishedAt&depth=2&limit=${limit}&page=${page}`, {
-    next: { revalidate: 900, tags: [`posts-${categoryId}`] },
-  });
+  // Fetch subcategories for the given category
+  const subCategories = await fetchSubCategories(categoryId);
+  // Create an array of category IDs (parent + subcategories)
+  const categoryIds = [categoryId, ...subCategories.map((sub) => sub.id)];
+  
+  // Query posts where categories include any of the parent or subcategory IDs
+  const res = await fetch(
+    `${apiUrl}/api/posts?where[categories][in]=${categoryIds.join(',')}&sort=-publishedAt&depth=2&limit=${limit}&page=${page}`,
+    {
+      next: { revalidate: 900, tags: [`posts-${categoryId}`] },
+    }
+  );
   const data = await res.json();
   return { posts: data.docs || [], total: data.totalDocs || 0 };
 }
@@ -91,7 +100,6 @@ export default async function CategoryPage({
 
   const { posts, total } = await fetchPostsByCategory(category.id, page, limit);
   const totalPages = Math.ceil(total / limit);
-
 
   const subCategories = await fetchSubCategories(category.id);
   const pathname = `/${categorySlug}${page > 1 ? `?page=${page}` : ""}`;

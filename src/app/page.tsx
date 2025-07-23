@@ -3,7 +3,7 @@ import axios from "axios";
 import Link from "next/link";
 import { Row, Col, Card, Space } from "antd";
 import Text from "antd/es/typography/Text";
-import Seo from "../components/Seo"
+import Seo from "../components/Seo";
 
 // Type definitions
 type Category = {
@@ -144,22 +144,69 @@ export default async function Home() {
     தமிழ்நாடு: 0,
     இந்தியா: 1,
     உலகம்: 2,
+    சினிமா: 3,
+    விளையாட்டு: 4,
+    தொழிநுட்பம்: 5,
+    ஆட்டோமொபைல்: 6,
+    லைஃப்ஸ்டைல்: 7,
+    ஆன்மீகம்: 8,
   };
 
-  const sortedCategories = [...categories].sort((a, b) => {
-    const orderA = categoryOrder[a.title] ?? 999;
-    const orderB = categoryOrder[b.title] ?? 999;
+  // Normalize titles by trimming whitespace
+  const allowedCategories = [
+    "தமிழ்நாடு",
+    "இந்தியா",
+    "உலகம்",
+    "சினிமா",
+    "விளையாட்டு",
+    "தொழிநுட்பம்",
+    "ஆட்டோமொபைல்",
+    "லைஃப்ஸ்டைல்",
+    "ஆன்மீகம்",
+  ].map((cat) => cat.trim());
+  const excludedCategories = ["திரைப்படங்கள்"]; // Explicitly exclude திரைப்படங்கள்
 
-    if (orderA !== 999 && orderB !== 999) {
-      return orderA - orderB;
-    }
-    if (orderA !== 999) {
-      return -1;
-    }
-    if (orderB !== 999) {
-      return 1;
-    }
-    return categories.indexOf(b) - categories.indexOf(a);
+  const mappedCategories = [...categories].map((category) => ({
+    ...category,
+    title: category.title.trim(), // Normalize title by removing whitespace
+  }));
+
+  // Build a set of unique categories including parents
+  const uniqueCategories = new Map<string, Category>();
+  await Promise.all(
+    mappedCategories.map(async (category) => {
+      const normalizedTitle = category.title.trim();
+      if (excludedCategories.includes(normalizedTitle)) return;
+
+      // Add the category if it’s allowed
+      if (allowedCategories.includes(normalizedTitle)) {
+        uniqueCategories.set(category.id, category);
+        return;
+      }
+
+      // Check and add the parent if it’s allowed
+      if (category.parent) {
+        const parent =
+          typeof category.parent === "string"
+            ? await fetchParentCategory(category.parent)
+            : category.parent;
+        if (parent && allowedCategories.includes(parent.title.trim())) {
+          const parentCategory = {
+            id: typeof category.parent === "string" ? category.parent : category.parent.id,
+            title: parent.title.trim(),
+            slug: parent.slug,
+            parent: undefined,
+          };
+          uniqueCategories.set(parentCategory.id, parentCategory);
+        }
+      }
+    })
+  );
+
+  const sortedCategories = Array.from(uniqueCategories.values()).sort((a, b) => {
+    const orderA = categoryOrder[a.title.trim()] ?? 999;
+    const orderB = categoryOrder[b.title.trim()] ?? 999;
+    return orderA - orderB;
   });
 
   return (

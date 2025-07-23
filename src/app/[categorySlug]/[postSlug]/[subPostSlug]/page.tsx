@@ -494,6 +494,7 @@ export default async function SubCategoryPostPage({
                 return (
                   <section className="mb-12" key={index}>
                     <div className="prose prose-lg prose-gray max-w-none text-gray-800 leading-relaxed">
+                      <p className="post-desc" key={index}>
                       {block.children.map((child: RichTextChild, j: number) => {
                         if ("text" in child) {
                           const textChild = child as RichTextChildBase;
@@ -524,6 +525,7 @@ export default async function SubCategoryPostPage({
                         }
                         return null;
                       })}
+                      </p>
                     </div>
                   </section>
                 );
