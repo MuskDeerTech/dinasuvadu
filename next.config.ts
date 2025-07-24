@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     useCache: true, // Enables the 'use cache' directive
+    staleTimes: {
+      dynamic: 30,
+      static: 180,
+    },
   },
 };
 

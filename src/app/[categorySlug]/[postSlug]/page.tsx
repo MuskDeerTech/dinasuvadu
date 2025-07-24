@@ -400,7 +400,7 @@ export default async function PostOrSubCategoryPage({
                           </Link>
                           <div className="post-first-tag">
                             {(post.tags ?? []).length > 0 && (
-                              <Link href={`/tags/${(post.tags ?? [])[0].slug}`}>
+                              <Link href={`/tag/${(post.tags ?? [])[0].slug}`}>
                                 <span className="text-blue-600 hover:underline">
                                   {(post.tags ?? [])[0].name}
                                 </span>
@@ -604,7 +604,7 @@ export default async function PostOrSubCategoryPage({
                     {post.populatedAuthors.map((author, i) => (
                       <span key={author.id}>
                         <Link
-                          href={`/authors/${author.slug}`}
+                          href={`/author/${author.slug}`}
                           className="text-indigo-600 hover:underline transition-colors"
                         >
                           {author.name}
@@ -826,7 +826,7 @@ export default async function PostOrSubCategoryPage({
               <div className="post-tags mt-8">
                 <div className="tags flex flex-wrap gap-2">
                   {(post.tags ?? []).map((tag) => (
-                    <Link key={tag.id} href={`/tags/${tag.slug}`}>
+                    <Link key={tag.id} href={`/tag/${tag.slug}`}>
                       <span className="inline-block bg-blue-100 text-blue-800 rounded-full px-4 py-1.5 text-sm font-medium hover:bg-blue-200 transition-colors">
                         {tag.name}
                       </span>
