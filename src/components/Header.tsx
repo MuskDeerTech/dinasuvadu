@@ -44,7 +44,7 @@ export default function Header({ categories }: HeaderProps) {
     { title: "உலகம்", slug: "world", id: "cat-world", parent: { slug: "news", title: "News" } },
     { title: "சினிமா", slug: "cinema", id: "cat-cinema" },
     { title: "விளையாட்டு", slug: "sports", id: "cat-sports" },
-    { title: "தொழிநுட்பம்", slug: "technology", id: "cat-technology" },
+    { title: "தொழில்நுட்பம்", slug: "technology", id: "cat-technology" },
     { title: "ஆட்டோமொபைல்", slug: "automobile", id: "cat-automobile" },
     { title: "லைஃப்ஸ்டைல்", slug: "lifestyle", id: "cat-lifestyle" },
     { title: "ஆன்மீகம்", slug: "devotional", id: "cat-spirituality" },
@@ -53,7 +53,6 @@ export default function Header({ categories }: HeaderProps) {
   // Map fixed categories to the categories prop data, falling back to defaults
   const sortedCategories = fixedCategories.map((fixedCategory) => {
     const categoryFromProp = categories.find((cat) => cat.title === fixedCategory.title);
-    // Ensure every category has a parent property (even if undefined)
     if (categoryFromProp) {
       return categoryFromProp;
     } else {
@@ -65,7 +64,6 @@ export default function Header({ categories }: HeaderProps) {
     if (pathname === "/") return "home";
     const segments = pathname.split("/").filter(Boolean);
 
-    // Check if it's a category listing page (e.g., /category-slug or /parent-slug/category-slug)
     if (segments.length === 1 || segments.length === 2) {
       for (const category of sortedCategories) {
         const parentSlug =
@@ -79,19 +77,12 @@ export default function Header({ categories }: HeaderProps) {
         if (pathname === categoryPath) return category.id;
       }
     }
-    // Return empty string for post pages or other routes
     return "";
   };
 
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
-      console.log(
-        "Scroll Position:",
-        scrollPosition,
-        "isScrolled:",
-        scrollPosition > 64
-      );
       setIsScrolled(scrollPosition > 64);
 
       const maxScroll =
@@ -113,6 +104,11 @@ export default function Header({ categories }: HeaderProps) {
   }, []);
 
   const selectedKey = getSelectedKey();
+
+  const handleCategoryClick = (href: string) => {
+    router.push(href); // Perform client-side navigation
+    router.refresh(); // Force a full refresh
+  };
 
   return (
     <>
@@ -165,7 +161,9 @@ export default function Header({ categories }: HeaderProps) {
                     key={category.id}
                     className={selectedKey === category.id ? "active" : ""}
                   >
-                    <Link href={href}>{category.title}</Link>
+                    <Link href={href} onClick={() => handleCategoryClick(href)}>
+                      {category.title}
+                    </Link>
                     {selectedKey === category.id && (
                       <span
                         className="underline-bar"
@@ -207,7 +205,6 @@ export default function Header({ categories }: HeaderProps) {
 
       {/* Mobile Drawer with Backdrop */}
       <>
-        {/* Backdrop */}
         {drawerVisible && (
           <div
             className="drawer-backdrop"
@@ -215,7 +212,6 @@ export default function Header({ categories }: HeaderProps) {
           />
         )}
 
-        {/* Drawer */}
         <div className={`mobile-drawer ${drawerVisible ? "open" : ""}`}>
           <button className="close-btn" onClick={() => setDrawerVisible(false)}>
             ✕
@@ -241,11 +237,13 @@ export default function Header({ categories }: HeaderProps) {
                 : `/${category.slug}`;
               return (
                 <li key={category.id} onClick={() => setDrawerVisible(false)}>
-                  <Link href={href}>{category.title}</Link>
+                  <Link href={href} onClick={() => handleCategoryClick(href)}>
+                    {category.title}
+                  </Link>
                 </li>
               );
             })}
-             <li>
+            <li>
               <a href="#"></a>
               <section className="fllw-btn">
                 <a href="#"> </a>

@@ -210,8 +210,8 @@ export async function GET(
 >
   <channel>
     <title>Dinasuvadu - ${escapeXml(tag.title)}</title>
-    <atom:link href="${baseUrl}/tags/${tagSlug}/feed" rel="self" type="application/rss+xml" />
-    <link>${baseUrl}/tags/${tagSlug}</link>
+    <atom:link href="${baseUrl}/tag/${tagSlug}/feed" rel="self" type="application/rss+xml" />
+    <link>${baseUrl}/tag/${tagSlug}</link>
     <description>Tamil News, Breaking News tagged with ${escapeXml(tag.title)}, தமிழ் செய்திகள்</description>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
     <language>ta</language>
@@ -221,7 +221,7 @@ export async function GET(
     <image>
       <url>${baseUrl}/dinasuvadu.svg</url>
       <title>Dinasuvadu - ${escapeXml(tag.title)}</title>
-      <link>${baseUrl}/tags/${tagSlug}</link>
+      <link>${baseUrl}/tag/${tagSlug}</link>
       <width>32</width>
       <height>32</height>
     </image>
