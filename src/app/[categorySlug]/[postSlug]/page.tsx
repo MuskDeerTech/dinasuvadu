@@ -676,115 +676,116 @@ export default async function PostOrSubCategoryPage({
 
 
             {/* Post Content (Fallback if layout is empty) */}
-               {post.content?.root?.children.map((block, index) => {
-                if (block.type === "paragraph") {
-                  const textAlign = block.format === "center" ? "text-center" : block.format === "right" ? "text-right" : "text-left";
-                  const isBold = block.textFormat === 1 || block.textFormat === 2;
-                  const isItalic = block.textFormat === 4 || block.textFormat === 8;
-                  return (
-                    <section className="mb-12" key={index}>
-                      <div className={`prose prose-lg prose-gray max-w-none text-gray-800 leading-relaxed ${textAlign}`}>
-                        <p className="post-desc" key={index}>
-                          {block.children.map((child: RichTextChild, j: number) => {
-                            if ("text" in child) {
-                              const textChild = child as RichTextChildBase;
-                              return (
-                                <span
-                                  key={`${index}-${j}`}
-                                  className={`${isBold ? "font-semibold" : ""} ${isItalic ? "italic" : ""}`}
-                                >
-                                  {textChild.text}
-                                </span>
-                              );
-                            } else if (child.type === "link") { // Only check for "link" now
-                              const linkChild = child as AutolinkChild;
-                              return linkChild.children.map((nestedChild: RichTextChildBase, k: number) => (
-                                <a
-                                  key={`${index}-${j}-${k}`}
-                                  href={linkChild.fields.url}
-                                  target={linkChild.fields.newTab ? "_blank" : "_self"}
-                                  rel="noopener noreferrer"
-                                  className="text-indigo-600 hover:underline"
-                                >
-                                  {nestedChild.text}
-                                </a>
-                              ));
-                            }
-                            return null;
-                          })}
-                        </p>
-                      </div>
-                    </section>
-                  );
-                } else if (block.type === "block" && block.fields?.blockType === "embed") {
-                  if (block.fields.url.includes("<blockquote class=\"twitter-tweet\"")) {
-                    return <TwitterEmbedClient key={index} html={block.fields.url} />;
-                  }
-                  return (
-                    <div key={index} className="mb-12" dangerouslySetInnerHTML={{ __html: block.fields.url }} />
-                  );
-                } else if (block.type === "block" && block.fields?.blockType === "video") {
-                  const embedHtml = generateEmbedHtml(block.fields.url);
-                  if (embedHtml) {
-                    return (
-                      <div key={index} className="mb-12" dangerouslySetInnerHTML={{ __html: embedHtml }} />
-                    );
-                  }
-                } else if (block.type === "heading") {
-                  const Tag = `h${block.tag === "h1" ? 1 : block.tag === "h2" ? 2 : block.tag === "h3" ? 3 : 4}` as const;
-                  return (
-                    <Tag key={index} className="mb-4">
-                      {block.children.map((child: RichTextChild, j: number) =>
-                        "text" in child ? child.text : ""
-                      )}
-                    </Tag>
-                  );
-                } else if (block.type === "list") {
-                  const Tag = block.listType === "bullet" ? "ul" : "ol";
-                  return (
-                    <Tag key={index} className="mb-4 list-disc pl-5">
-                      {block.children.map((item, j) => (
-                        <li key={`${index}-${j}`} className="mb-2">
-                          {item.children.map((child: RichTextChild, k: number) =>
-                            "text" in child ? child.text : ""
-                          )}
-                        </li>
-                      ))}
-                    </Tag>
-                  );
-                } else if (block.type === "upload" && block.value?.url) {
-                  const src = getImageUrl(block.value.url);
-                  if (src) {
-                    return (
-                      <figure key={index} className="mb-10">
-                        <img
-                          src={src}
-                          alt={block.value.alt || "Uploaded Image"}
-                          className="w-full h-64 object-cover rounded-lg shadow-lg"
-                        />
-                        {block.value.caption && <figcaption className="text-sm text-gray-600 mt-2">{block.value.caption}</figcaption>}
-                      </figure>
-                    );
-                  }
-                  return null;
-                } else if (block.type === "block" && block.fields?.blockType === "mediaBlock" && block.fields.media?.url) {
-                  const src = getImageUrl(block.fields.media.url);
-                  if (src) {
-                    return (
-                      <figure key={index} className="mb-10">
-                        <img
-                          src={src}
-                          alt={block.fields.media.alt || "Media Image"}
-                          className="w-full h-64 object-cover rounded-lg shadow-lg"
-                        />
-                        {block.fields.media.caption && <figcaption className="text-sm text-gray-600 mt-2">{block.fields.media.caption}</figcaption>}
-                      </figure>
-                    );
-                  }
-                  return null;
-                }
-                return null;
-              })}
+                 {post.content?.root?.children.map((block, index) => {
+                        if (block.type === "paragraph") {
+                          const textAlign = block.format === "center" ? "text-center" : block.format === "right" ? "text-right" : "text-left";
+                          const isBlockBold = block.textFormat === 1 || block.textFormat === 2; // Adjust based on API docs
+                          return (
+                            <section className="mb-12" key={index}>
+                              <div className={`max-w-none text-gray-800 leading-relaxed ${textAlign}`}>
+                                <p className="post-desc" key={index}>
+                                  {block.children.map((child: RichTextChild, j: number) => {
+                                    if ("text" in child) {
+                                      const textChild = child as RichTextChildBase;
+                                      const isBold = textChild.bold ?? textChild.format === 1;
+                                      return (
+                                        <span
+                                          key={`${index}-${j}`}
+                                          className={`${isBold ? "font-bold custom-bold" : ""} ${textChild.italic ? "italic" : ""}`} // Added custom-bold
+                                          style={isBold ? { fontWeight: 700 } : {}} // Explicit weight
+                                        >
+                                          {textChild.text}
+                                        </span>
+                                      );
+                                    } else if (child.type === "link") {
+                                      const linkChild = child as AutolinkChild;
+                                      return linkChild.children.map((nestedChild: RichTextChildBase, k: number) => (
+                                        <a
+                                          key={`${index}-${j}-${k}`}
+                                          href={linkChild.fields.url}
+                                          target={linkChild.fields.newTab ? "_blank" : "_self"}
+                                          rel="noopener noreferrer"
+                                          className="text-indigo-600 hover:underline"
+                                        >
+                                          {nestedChild.text}
+                                        </a>
+                                      ));
+                                    }
+                                    return null;
+                                  })}
+                                </p>
+                              </div>
+                            </section>
+                          );
+                        } else if (block.type === "block" && block.fields?.blockType === "embed") {
+                          if (block.fields.url.includes("<blockquote class=\"twitter-tweet\"")) {
+                            return <TwitterEmbedClient key={index} html={block.fields.url} />;
+                          }
+                          return (
+                            <div key={index} className="mb-12" dangerouslySetInnerHTML={{ __html: block.fields.url }} />
+                          );
+                        } else if (block.type === "block" && block.fields?.blockType === "video") {
+                          const embedHtml = generateEmbedHtml(block.fields.url);
+                          if (embedHtml) {
+                            return (
+                              <div key={index} className="mb-12" dangerouslySetInnerHTML={{ __html: embedHtml }} />
+                            );
+                          }
+                        } else if (block.type === "heading") {
+                          const Tag = `h${block.tag === "h1" ? 1 : block.tag === "h2" ? 2 : block.tag === "h3" ? 3 : 4}` as const;
+                          return (
+                            <Tag key={index} className="mb-4">
+                              {block.children.map((child: RichTextChild, j: number) =>
+                                "text" in child ? child.text : ""
+                              )}
+                            </Tag>
+                          );
+                        } else if (block.type === "list") {
+                          const Tag = block.listType === "bullet" ? "ul" : "ol";
+                          return (
+                            <Tag key={index} className="mb-4 list-disc pl-5">
+                              {block.children.map((item, j) => (
+                                <li key={`${index}-${j}`} className="mb-2">
+                                  {item.children.map((child: RichTextChild, k: number) =>
+                                    "text" in child ? child.text : ""
+                                  )}
+                                </li>
+                              ))}
+                            </Tag>
+                          );
+                        } else if (block.type === "upload" && block.value?.url) {
+                          const src = getImageUrl(block.value.url);
+                          if (src) {
+                            return (
+                              <figure key={index} className="mb-10">
+                                <img
+                                  src={src}
+                                  alt={block.value.alt || "Uploaded Image"}
+                                  className="w-full h-64 object-cover rounded-lg shadow-lg"
+                                />
+                                {block.value.caption && <figcaption className="text-sm text-gray-600 mt-2">{block.value.caption}</figcaption>}
+                              </figure>
+                            );
+                          }
+                          return null;
+                        } else if (block.type === "block" && block.fields?.blockType === "mediaBlock" && block.fields.media?.url) {
+                          const src = getImageUrl(block.fields.media.url);
+                          if (src) {
+                            return (
+                              <figure key={index} className="mb-10">
+                                <img
+                                  src={src}
+                                  alt={block.fields.media.alt || "Media Image"}
+                                  className="w-full h-64 object-cover rounded-lg shadow-lg"
+                                />
+                                {block.fields.media.caption && <figcaption className="text-sm text-gray-600 mt-2">{block.fields.media.caption}</figcaption>}
+                              </figure>
+                            );
+                          }
+                          return null;
+                        }
+                        return null;
+                      })}   
               
             {/* Tags */}
             {(post.tags?.length ?? 0) > 0 && (
