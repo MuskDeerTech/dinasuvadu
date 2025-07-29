@@ -20,16 +20,18 @@ type RichTextChildBase = {
 };
 
 type AutolinkChild = {
-  type: "autolink";
+  type: "link"; // Changed from "autolink" to "link" to match JSON
   children: RichTextChildBase[];
   fields: {
     linkType: "custom";
     url: string;
+    newTab?: boolean; // Added to match JSON
   };
   direction?: string;
   format?: string;
   indent?: number;
   version?: number;
+  id?: string; // Added to match JSON id field
 };
 
 type RichTextChild = RichTextChildBase | AutolinkChild;
@@ -58,6 +60,28 @@ type VideoBlock = {
   format?: string;
 };
 
+type UploadBlock = {
+  type: "upload";
+  version?: number;
+  format?: string;
+  id?: string;
+  fields?: null; // Fields is null in the JSON
+  relationTo?: string;
+  value: Media; // The value contains the media details
+};
+
+type MediaBlock = {
+  type: "block";
+  version?: number;
+  format?: string;
+  fields: {
+    blockType: "mediaBlock";
+    id?: string;
+    blockName?: string;
+    media: Media; // Media object with url, sizes, etc.
+  };
+};
+
 type ParagraphBlock = {
   type: "paragraph";
   children: RichTextChild[];
@@ -69,7 +93,38 @@ type ParagraphBlock = {
   textStyle?: string;
 };
 
-type RichTextBlock = ParagraphBlock | EmbedBlock | VideoBlock;
+type HeadingBlock = {
+  type: "heading";
+  tag: "h1" | "h2" | "h3" | "h4";
+  children: RichTextChild[];
+  direction?: string;
+  format?: string;
+  indent?: number;
+  version?: number;
+};
+
+type ListBlock = {
+  type: "list";
+  listType: "bullet" | "number";
+  children: {
+    children: RichTextChild[];
+  }[];
+  direction?: string;
+  format?: string;
+  indent?: number;
+  version?: number;
+};
+
+type RichTextBlock =
+  | ParagraphBlock
+  | EmbedBlock
+  | VideoBlock
+  | UploadBlock
+  | HeadingBlock
+  | ListBlock
+  | MediaBlock;
+
+
 
 type Media = {
   url: string;
@@ -229,11 +284,13 @@ function extractPlainTextFromRichText(content: Post["content"]): string {
     .filter((block): block is ParagraphBlock => block.type === "paragraph")
     .map((block) =>
       block.children
-        .flatMap((child) =>
-          child.type === "autolink"
-            ? child.children.map((c) => c.text).join("")
-            : child.text || ""
-        )
+        .flatMap((child: RichTextChild) => {
+          if (child.type === "link") {
+            const linkChild = child as AutolinkChild;
+            return linkChild.children.map((c: RichTextChildBase) => c.text);
+          }
+          return "text" in child ? [child.text] : [];
+        })
         .join("")
     )
     .join("\n");
@@ -489,64 +546,115 @@ export default async function SubCategoryPostPage({
             )}
 
             {/* Post Content (Plain Text and Embeds) */}
-            {post.content?.root?.children.map((block, index) => {
-              if (block.type === "paragraph") {
+           {post.content?.root?.children.map((block, index) => {
+  if (block.type === "paragraph") {
+    const textAlign = block.format === "center" ? "text-center" : block.format === "right" ? "text-right" : "text-left";
+    const isBold = block.textFormat === 1 || block.textFormat === 2;
+    const isItalic = block.textFormat === 4 || block.textFormat === 8;
+    return (
+      <section className="mb-12" key={index}>
+        <div className={`prose prose-lg prose-gray max-w-none text-gray-800 leading-relaxed ${textAlign}`}>
+          <p className="post-desc" key={index}>
+            {block.children.map((child: RichTextChild, j: number) => {
+              if ("text" in child) {
+                const textChild = child as RichTextChildBase;
                 return (
-                  <section className="mb-12" key={index}>
-                    <div className="prose prose-lg prose-gray max-w-none text-gray-800 leading-relaxed">
-                      <p className="post-desc" key={index}>
-                      {block.children.map((child: RichTextChild, j: number) => {
-                        if ("text" in child) {
-                          const textChild = child as RichTextChildBase;
-                          const isBold = textChild.format === 1; // Interpret format 1 as bold
-                          return (
-                            <span
-                              key={`${index}-${j}`}
-                              className={`${isBold ? "font-semibold" : ""}`}
-                            >
-                              {textChild.text}
-                            </span>
-                          );
-                        } else if (child.type === "autolink") {
-                          const autolinkChild = child as AutolinkChild;
-                          return autolinkChild.children.map(
-                            (nestedChild: RichTextChildBase, k: number) => {
-                              const isBold = nestedChild.format === 1; // Interpret format 1 as bold
-                              return (
-                                <span
-                                  key={`${index}-${j}-${k}`}
-                                  className={`${isBold ? "font-semibold" : ""}`}
-                                >
-                                  {nestedChild.text}
-                                </span>
-                              );
-                            }
-                          );
-                        }
-                        return null;
-                      })}
-                      </p>
-                    </div>
-                  </section>
+                  <span
+                    key={`${index}-${j}`}
+                    className={`${isBold ? "font-semibold" : ""} ${isItalic ? "italic" : ""}`}
+                  >
+                    {textChild.text}
+                  </span>
                 );
-              } else if (block.type === "block" && block.fields?.blockType === "embed") {
-                // Check if the URL contains Twitter embed HTML
-                if (block.fields.url.includes("<blockquote class=\"twitter-tweet\"")) {
-                  return <TwitterEmbedClient key={index} html={block.fields.url} />;
-                }
-                return (
-                  <div key={index} className="mb-12" dangerouslySetInnerHTML={{ __html: block.fields.url }} />
-                );
-              } else if (block.type === "block" && block.fields?.blockType === "video") {
-                const embedHtml = generateEmbedHtml(block.fields.url);
-                if (embedHtml) {
-                  return (
-                    <div key={index} className="mb-12" dangerouslySetInnerHTML={{ __html: embedHtml }} />
-                  );
-                }
+              } else if (child.type === "link") { // Only check for "link" now
+                const linkChild = child as AutolinkChild;
+                return linkChild.children.map((nestedChild: RichTextChildBase, k: number) => (
+                  <a
+                    key={`${index}-${j}-${k}`}
+                    href={linkChild.fields.url}
+                    target={linkChild.fields.newTab ? "_blank" : "_self"}
+                    rel="noopener noreferrer"
+                    className="text-indigo-600 hover:underline"
+                  >
+                    {nestedChild.text}
+                  </a>
+                ));
               }
               return null;
             })}
+          </p>
+        </div>
+      </section>
+    );
+  } else if (block.type === "block" && block.fields?.blockType === "embed") {
+    if (block.fields.url.includes("<blockquote class=\"twitter-tweet\"")) {
+      return <TwitterEmbedClient key={index} html={block.fields.url} />;
+    }
+    return (
+      <div key={index} className="mb-12" dangerouslySetInnerHTML={{ __html: block.fields.url }} />
+    );
+  } else if (block.type === "block" && block.fields?.blockType === "video") {
+    const embedHtml = generateEmbedHtml(block.fields.url);
+    if (embedHtml) {
+      return (
+        <div key={index} className="mb-12" dangerouslySetInnerHTML={{ __html: embedHtml }} />
+      );
+    }
+  } else if (block.type === "heading") {
+    const Tag = `h${block.tag === "h1" ? 1 : block.tag === "h2" ? 2 : block.tag === "h3" ? 3 : 4}` as const;
+    return (
+      <Tag key={index} className="mb-4">
+        {block.children.map((child: RichTextChild, j: number) =>
+          "text" in child ? child.text : ""
+        )}
+      </Tag>
+    );
+  } else if (block.type === "list") {
+    const Tag = block.listType === "bullet" ? "ul" : "ol";
+    return (
+      <Tag key={index} className="mb-4 list-disc pl-5">
+        {block.children.map((item, j) => (
+          <li key={`${index}-${j}`} className="mb-2">
+            {item.children.map((child: RichTextChild, k: number) =>
+              "text" in child ? child.text : ""
+            )}
+          </li>
+        ))}
+      </Tag>
+    );
+  } else if (block.type === "upload" && block.value?.url) {
+    const src = getImageUrl(block.value.url);
+    if (src) {
+      return (
+        <figure key={index} className="mb-10">
+          <img
+            src={src}
+            alt={block.value.alt || "Uploaded Image"}
+            className="w-full h-64 object-cover rounded-lg shadow-lg"
+          />
+          {block.value.caption && <figcaption className="text-sm text-gray-600 mt-2">{block.value.caption}</figcaption>}
+        </figure>
+      );
+    }
+    return null;
+  } else if (block.type === "block" && block.fields?.blockType === "mediaBlock" && block.fields.media?.url) {
+    const src = getImageUrl(block.fields.media.url);
+    if (src) {
+      return (
+        <figure key={index} className="mb-10">
+          <img
+            src={src}
+            alt={block.fields.media.alt || "Media Image"}
+            className="w-full h-64 object-cover rounded-lg shadow-lg"
+          />
+          {block.fields.media.caption && <figcaption className="text-sm text-gray-600 mt-2">{block.fields.media.caption}</figcaption>}
+        </figure>
+      );
+    }
+    return null;
+  }
+  return null;
+})}
 
             {/* Tags */}
             {(post.tags ?? []).length > 0 && (

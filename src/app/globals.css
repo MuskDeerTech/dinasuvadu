@@ -766,7 +766,9 @@ a:hover {
   margin-block: 1em;
   margin-bottom: 2em !important;
 }
-
+.post-desc a{
+  text-decoration: underline;
+}
 .site-footer {
   background-color: #333333;
   padding: 0 30px;
